@@ -59,10 +59,16 @@
             :active-item="activeItem"
             :tasks="filteredTasks"
             :selected-task="selectedTask"
+            :is-loading="taskStore.loading"
+            :current-date="currentDate"
+            v-model:selectedDate="currentDate"
             @task-selected="handleTaskSelected"
             @toggle-mobile-menu="toggleMobileMenu"
             @add-task="handleAddTask"
             @toggle-task-completion="handleToggleTaskCompletion"
+            @previous-day="handlePreviousDay"
+            @next-day="handleNextDay"
+            @today="handleToday"
           />
         </div>
 
@@ -112,14 +118,7 @@ import SidebarComponent from "@/components/schedulerComponents/SidebarComponent.
 import MainContent from "@/components/schedulerComponents/MainContent.vue";
 import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
 import { locales } from "@/locales/schedulerLocales/index";
-import type {
-  Task,
-  TaskCreate,
-  TaskList,
-  Tag,
-  SubTask,
-  SubTaskCreate,
-} from "@/types/index";
+import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/index";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -134,6 +133,7 @@ const selectedTask = ref<Task | null>(null);
 const isMobileMenuOpen = ref<boolean>(false);
 const showMobilePanel = ref<boolean>(false);
 const showAddTaskPanel = ref<boolean>(false);
+const currentDate = ref<string>(new Date().toISOString().split("T")[0]);
 
 // Computed
 const filteredTasks = computed<Task[]>(() => {
@@ -153,6 +153,9 @@ const filteredTasks = computed<Task[]>(() => {
     const categoryId = parseInt(activeItem.value.split("-")[1]);
     return taskStore.tasksByCategory(categoryId);
   }
+  if (activeItem.value === "calendar") {
+    return taskStore.tasksForDate(currentDate.value);
+  }
   return taskStore.tasks;
 });
 
@@ -161,10 +164,14 @@ const handleLanguageChange = (): void => {
   currentLanguage.value = currentLanguage.value === "en" ? "fa" : "en";
 };
 
-const handleItemSelected = (item: string): void => {
+const handleItemSelected = async (item: string): Promise<void> => {
   activeItem.value = item;
   selectedTask.value = null;
   showAddTaskPanel.value = false;
+  if (item === "calendar") {
+    currentDate.value = new Date().toISOString().split("T")[0];
+    await taskStore.fetchTasksByDate(currentDate.value);
+  }
   if (isMobileMenuOpen.value) {
     closeMobileMenu();
   }
@@ -202,17 +209,13 @@ const handleSaveTask = async (
 ): Promise<void> => {
   try {
     if (taskData.isAddingTask) {
-      // ایجاد تسک جدید
       await taskStore.addTask(taskData);
       showAddTaskPanel.value = false;
-
-      // نمایش پیام موفقیت
       notificationStore.showSuccess(
         locales[currentLanguage.value].taskCreated ||
           "Task created successfully",
       );
     } else if (selectedTask.value) {
-      // آپدیت تسک موجود
       await taskStore.updateTask(selectedTask.value.id, {
         id: selectedTask.value.id,
         title: taskData.title,
@@ -228,22 +231,16 @@ const handleSaveTask = async (
           .filter((tag): tag is Tag => !!tag),
         updated_at: new Date().toISOString(),
       });
-
       selectedTask.value = null;
-
-      // نمایش پیام موفقیت
       notificationStore.showSuccess(
         locales[currentLanguage.value].taskUpdated ||
           "Task updated successfully",
       );
     }
-
-    // بستن پنل در موبایل
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
     }
   } catch (error) {
-    // نمایش پیام خطا
     console.error("Error saving task:", error);
     notificationStore.showError(
       taskData.isAddingTask
@@ -260,12 +257,9 @@ const handleDeleteTask = async (): Promise<void> => {
     try {
       await taskStore.deleteTask(selectedTask.value.id);
       selectedTask.value = null;
-
       if (window.innerWidth < 1024) {
         showMobilePanel.value = false;
       }
-
-      // نمایش پیام موفقیت
       notificationStore.showSuccess(
         locales[currentLanguage.value].taskDeleted ||
           "Task deleted successfully",
@@ -307,20 +301,22 @@ const closeMobileMenu = (): void => {
   isMobileMenuOpen.value = false;
 };
 
-// Helper function to get priority color
-const getPriorityColor = (level: "L" | "M" | "H"): string => {
-  const colors = {
-    L: "bg-green-500", // Low
-    M: "bg-yellow-500", // Medium
-    H: "bg-orange-500", // High
-  };
-  return colors[level] || "bg-gray-500";
+const handlePreviousDay = async (): Promise<void> => {
+  const date = new Date(currentDate.value);
+  date.setDate(date.getDate() - 1);
+  currentDate.value = date.toISOString().split("T")[0];
+  await taskStore.fetchTasksByDate(currentDate.value);
 };
 
-// Helper function to format date
-const formatDate = (dateString: string | null): string => {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString();
+const handleNextDay = async (): Promise<void> => {
+  const date = new Date(currentDate.value);
+  date.setDate(date.getDate() + 1);
+  currentDate.value = date.toISOString().split("T")[0];
+  await taskStore.fetchTasksByDate(currentDate.value);
+};
+
+const handleToday = async (): Promise<void> => {
+  currentDate.value = new Date().toISOString().split("T")[0];
 };
 
 // Initialize store

@@ -1,5 +1,4 @@
 <template>
-  <!-- قالب بدون تغییر باقی می‌مونه -->
   <div class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
@@ -50,8 +49,64 @@
       </button>
     </div>
 
+    <!-- Calendar Navigation Buttons -->
+    <div
+      v-if="activeItem === 'calendar'"
+      class="flex justify-center gap-2 mb-4"
+      :class="{ 'flex-row-reverse': currentLanguage === 'fa' }"
+    >
+      <button
+        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+        @click="$emit('previous-day')"
+      >
+        {{ locales[currentLanguage].previousDay || "Previous Day" }}
+      </button>
+      <button
+        class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+        @click="$emit('today')"
+      >
+        {{ locales[currentLanguage].today || "Today" }}
+      </button>
+      <button
+        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+        @click="$emit('next-day')"
+      >
+        {{ locales[currentLanguage].nextDay || "Next Day" }}
+      </button>
+      <input
+        type="date"
+        v-model="selectedDate"
+        class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        @change="$emit('update:selectedDate', selectedDate)"
+      />
+    </div>
+
+    <!-- Loading Animation -->
+    <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <svg
+        class="animate-spin h-8 w-8 text-blue-500"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+    </div>
+
     <!-- Task List -->
-    <div class="flex-1 space-y-3 overflow-y-auto scrollbar-hide">
+    <div v-else class="flex-1 space-y-3 overflow-y-auto scrollbar-hide">
       <div
         v-for="task in tasks"
         :key="task.id"
@@ -212,7 +267,7 @@
 
       <!-- Empty State -->
       <div
-        v-if="tasks.length === 0"
+        v-if="tasks.length === 0 && !isLoading"
         class="flex flex-col items-center justify-center py-12 text-gray-500"
       >
         <svg
@@ -240,6 +295,7 @@
 
 <script setup lang="ts">
 import type { Task, Locale } from "@/types/index";
+import { ref, watch } from "vue";
 
 // تعریف props با تایپ‌ها
 const props = defineProps<{
@@ -248,6 +304,8 @@ const props = defineProps<{
   activeItem: string;
   tasks: Task[];
   selectedTask: Task | null;
+  isLoading: boolean;
+  currentDate: string; // New prop for syncing date
 }>();
 
 // تعریف emits
@@ -256,7 +314,22 @@ const emit = defineEmits<{
   (e: "toggle-mobile-menu"): void;
   (e: "add-task"): void;
   (e: "toggle-task-completion", taskId: number): void;
+  (e: "previous-day"): void;
+  (e: "next-day"): void;
+  (e: "today"): void;
+  (e: "update:selectedDate", date: string): void; // Changed from date-selected
 }>();
+
+// Reactive data for date picker
+const selectedDate = ref<string>(props.currentDate);
+
+// Sync selectedDate with currentDate prop
+watch(
+  () => props.currentDate,
+  (newDate) => {
+    selectedDate.value = newDate;
+  },
+);
 
 // Helper Functions
 const getActiveItemTitle = (): string => {
@@ -271,10 +344,8 @@ const getActiveItemTitle = (): string => {
     return translations[props.activeItem];
   }
 
-  // Check if it's a category
   if (props.activeItem.startsWith("category-")) {
     const categoryId = parseInt(props.activeItem.split("-")[1]);
-    // In real app, you would get this from taskLists prop
     const categoryNames: Record<number, string> = {
       1: "Work",
       2: "Personal",
@@ -288,9 +359,9 @@ const getActiveItemTitle = (): string => {
 
 const getPriorityColor = (level: "L" | "M" | "H"): string => {
   const colors = {
-    L: "bg-green-500", // Low
-    M: "bg-yellow-500", // Medium
-    H: "bg-orange-500", // High
+    L: "bg-green-500",
+    M: "bg-yellow-500",
+    H: "bg-orange-500",
   };
   return colors[level] || "bg-gray-500";
 };

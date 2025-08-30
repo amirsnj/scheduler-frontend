@@ -11,50 +11,78 @@ import {
   getTags,
   getTaskCategories,
   getTasks,
-  updateTask as updateTaskAPI, // 🔥 اضافه کردن import جدید
-  toggleTaskComplete as toggleTaskAPI, // 🔥 اضافه کردن import جدید
+  updateTask as updateTaskAPI,
+  toggleTaskComplete as toggleTaskAPI,
+  getTasksByDate,
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
 
 const notificationStore = useNotificationStore();
 
 export const useTaskStore = defineStore("task", () => {
-  // State - بدون تغییر
+  // State
   const tasks = ref<Task[]>([]);
   const taskLists = ref<TaskList[]>([]);
   const tags = ref<Tag[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
+  const tasksByDate = ref<Map<string, Task[]>>(new Map());
 
-  // Getters (Computed) - بدون تغییر
-  const completedTasks = computed(() =>
-    tasks.value.filter((task) => task.is_completed),
-  );
+  // Getters (Computed)
+  const completedTasks = computed(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return tasks.value.filter(
+      (task) =>
+        task.is_completed &&
+        (task.scheduled_date === today || task.dead_line === today),
+    );
+  });
 
-  const pendingTasks = computed(() =>
-    tasks.value.filter((task) => !task.is_completed),
-  );
+  const pendingTasks = computed(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return tasks.value.filter(
+      (task) =>
+        !task.is_completed &&
+        (task.scheduled_date === today || task.dead_line === today),
+    );
+  });
 
-  const tasksByCategory = computed(
-    () => (categoryId: number | null) =>
-      tasks.value.filter((task) => task.category === categoryId),
-  );
+  const tasksByCategory = computed(() => (categoryId: number | null) => {
+    const today = new Date().toISOString().split("T")[0];
+    return tasks.value.filter(
+      (task) =>
+        task.category === categoryId &&
+        (task.scheduled_date === today || task.dead_line === today),
+    );
+  });
 
-  const tasksByPriority = computed(
-    () => (priority: "L" | "M" | "H") =>
-      tasks.value.filter((task) => task.priority_level === priority),
-  );
+  const tasksByPriority = computed(() => (priority: "L" | "M" | "H") => {
+    const today = new Date().toISOString().split("T")[0];
+    return tasks.value.filter(
+      (task) =>
+        task.priority_level === priority &&
+        (task.scheduled_date === today || task.dead_line === today),
+    );
+  });
 
-  const tasksByTag = computed(
-    () => (tagId: number) =>
-      tasks.value.filter((task) => task.tags.some((tag) => tag.id === tagId)),
-  );
+  const tasksByTag = computed(() => (tagId: number) => {
+    const today = new Date().toISOString().split("T")[0];
+    return tasks.value.filter(
+      (task) =>
+        task.tags.some((tag) => tag.id === tagId) &&
+        (task.scheduled_date === today || task.dead_line === today),
+    );
+  });
 
   const overdueTasks = computed(() => {
     const now = new Date();
+    const today = now.toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        task.dead_line && new Date(task.dead_line) < now && !task.is_completed,
+        task.dead_line &&
+        new Date(task.dead_line) < now &&
+        !task.is_completed &&
+        (task.scheduled_date === today || task.dead_line === today),
     );
   });
 
@@ -81,13 +109,39 @@ export const useTaskStore = defineStore("task", () => {
     overdue: overdueTasks.value.length,
   }));
 
+  const tasksForDate = computed(() => (date: string) => {
+    return tasksByDate.value.get(date) || [];
+  });
+
   // Task Actions
   const fetchTasks = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
       const response = await getTasks();
-      tasks.value = response.data;
+      tasks.value = Array.isArray(response.data)
+        ? response.data
+        : response.data.tasks || [];
+      const today = new Date().toISOString().split("T")[0];
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split("T")[0];
+      tasksByDate.value.set(
+        today,
+        tasks.value.filter(
+          (task: Task) =>
+            task.scheduled_date === today ||
+            (task.dead_line && task.dead_line === today),
+        ),
+      );
+      tasksByDate.value.set(
+        tomorrowStr,
+        tasks.value.filter(
+          (task: Task) =>
+            task.scheduled_date === tomorrowStr ||
+            (task.dead_line && task.dead_line === tomorrowStr),
+        ),
+      );
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorFetchingTasks ||
@@ -98,13 +152,54 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
+  const fetchTasksByDate = async (date: string): Promise<void> => {
+    if (tasksByDate.value.has(date)) {
+      return;
+    }
+    loading.value = true;
+    error.value = null;
+    try {
+      const response = await getTasksByDate(date);
+      console.log("API response for date", date, response.data);
+      const fetchedTasks = Array.isArray(response.data)
+        ? response.data
+        : response.data.tasks || [];
+      tasksByDate.value.set(date, fetchedTasks);
+      tasks.value = [
+        ...tasks.value.filter(
+          (task) => task.scheduled_date !== date && task.dead_line !== date,
+        ),
+        ...fetchedTasks,
+      ];
+    } catch (err) {
+      error.value =
+        locales[currentLanguage.value].errorFetchingTasks ||
+        "Error fetching tasks";
+      console.error(`Error fetching tasks for date ${date}:`, err);
+      notificationStore.showError(
+        locales[currentLanguage.value].errorFetchingTasks ||
+          "Error fetching tasks",
+      );
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const addTask = async (taskData: TaskCreate): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
       const response = await createTask(taskData);
-      console.log(response.data);
       tasks.value.push(response.data);
+      if (
+        taskData.scheduled_date &&
+        tasksByDate.value.has(taskData.scheduled_date)
+      ) {
+        tasksByDate.value.get(taskData.scheduled_date)!.push(response.data);
+      }
+      if (taskData.dead_line && tasksByDate.value.has(taskData.dead_line)) {
+        tasksByDate.value.get(taskData.dead_line)!.push(response.data);
+      }
       updateTaskListCount(taskData.category);
     } catch (err) {
       error.value =
@@ -117,7 +212,6 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  // 🔥 اصلاح کامل updateTask
   const updateTask = async (
     taskId: number,
     updates: Partial<Task>,
@@ -125,7 +219,6 @@ export const useTaskStore = defineStore("task", () => {
     loading.value = true;
     error.value = null;
     try {
-      // آماده‌سازی داده‌ها برای ارسال به بک‌اند
       const updateData = {
         title: updates.title,
         description: updates.description,
@@ -142,35 +235,55 @@ export const useTaskStore = defineStore("task", () => {
           })) || [],
       };
 
-      // ارسال به بک‌اند
-      console.log(updateData);
       const response = await updateTaskAPI(taskId, updateData);
-
-      // آپدیت داده‌های محلی با پاسخ سرور
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
       const oldCategory = tasks.value[taskIndex].category;
+      const oldScheduledDate = tasks.value[taskIndex].scheduled_date;
+      const oldDeadline = tasks.value[taskIndex].dead_line;
 
-      // استفاده از داده‌های برگردانده شده از سرور
       tasks.value[taskIndex] = {
         ...response.data,
         updated_at: new Date().toISOString(),
       };
 
-      // آپدیت شمارش category ها
+      if (oldScheduledDate && tasksByDate.value.has(oldScheduledDate)) {
+        tasksByDate.value.set(
+          oldScheduledDate,
+          tasksByDate.value
+            .get(oldScheduledDate)!
+            .filter((task) => task.id !== taskId),
+        );
+      }
+      if (oldDeadline && tasksByDate.value.has(oldDeadline)) {
+        tasksByDate.value.set(
+          oldDeadline,
+          tasksByDate.value
+            .get(oldDeadline)!
+            .filter((task) => task.id !== taskId),
+        );
+      }
+      if (
+        updates.scheduled_date &&
+        tasksByDate.value.has(updates.scheduled_date)
+      ) {
+        tasksByDate.value.get(updates.scheduled_date)!.push(response.data);
+      }
+      if (updates.dead_line && tasksByDate.value.has(updates.dead_line)) {
+        tasksByDate.value.get(updates.dead_line)!.push(response.data);
+      }
+
       if (oldCategory !== updates.category) {
         updateTaskListCount(oldCategory);
         updateTaskListCount(updates.category);
       }
-
-      console.log("Task updated successfully:", response.data);
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorUpdatingTask ||
         "Error updating task";
       console.error("Error updating task:", err);
-      throw err; // re-throw برای نمایش خطا در UI
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -181,12 +294,30 @@ export const useTaskStore = defineStore("task", () => {
     error.value = null;
     try {
       await deleteTask(taskId);
-
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
       const categoryId = tasks.value[taskIndex].category;
+      const scheduledDate = tasks.value[taskIndex].scheduled_date;
+      const deadline = tasks.value[taskIndex].dead_line;
+
       tasks.value.splice(taskIndex, 1);
+
+      if (scheduledDate && tasksByDate.value.has(scheduledDate)) {
+        tasksByDate.value.set(
+          scheduledDate,
+          tasksByDate.value
+            .get(scheduledDate)!
+            .filter((task) => task.id !== taskId),
+        );
+      }
+      if (deadline && tasksByDate.value.has(deadline)) {
+        tasksByDate.value.set(
+          deadline,
+          tasksByDate.value.get(deadline)!.filter((task) => task.id !== taskId),
+        );
+      }
+
       updateTaskListCount(categoryId);
     } catch (err) {
       error.value =
@@ -199,16 +330,12 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  // 🔥 اصلاح toggleTaskComplete
   const toggleTaskComplete = async (taskId: number): Promise<void> => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
       try {
-        // ارسال به API
         const newCompletionStatus = !task.is_completed;
         await toggleTaskAPI(taskId, newCompletionStatus);
-
-        // آپدیت محلی
         task.is_completed = newCompletionStatus;
         task.updated_at = new Date().toISOString();
       } catch (err) {
@@ -221,7 +348,7 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  // SubTask Actions - بدون تغییر
+  // SubTask Actions
   const addSubTask = async (
     taskId: number,
     subTaskData: Omit<SubTask, "id">,
@@ -281,7 +408,7 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  // TaskList Actions - بدون تغییر
+  // TaskList Actions
   const fetchTaskLists = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -307,7 +434,6 @@ export const useTaskStore = defineStore("task", () => {
       const response = await createTaskCategory(listData);
       taskLists.value.push(response.data);
     } catch (err) {
-      console.log(err);
       if (err.status == 400) {
         notificationStore.showError(
           locales[currentLanguage.value].TheListIsAlreadyExists,
@@ -351,6 +477,12 @@ export const useTaskStore = defineStore("task", () => {
     try {
       taskLists.value = taskLists.value.filter((list) => list.id !== listId);
       tasks.value = tasks.value.filter((task) => task.category !== listId);
+      tasksByDate.value.forEach((tasks, date) => {
+        tasksByDate.value.set(
+          date,
+          tasks.filter((task) => task.category !== listId),
+        );
+      });
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorDeletingList ||
@@ -365,14 +497,17 @@ export const useTaskStore = defineStore("task", () => {
     if (categoryId) {
       const list = taskLists.value.find((l) => l.id === categoryId);
       if (list) {
+        const today = new Date().toISOString().split("T")[0];
         list.task_count = tasks.value.filter(
-          (t) => t.category === categoryId,
+          (t) =>
+            t.category === categoryId &&
+            (t.scheduled_date === today || t.dead_line === today),
         ).length;
       }
     }
   };
 
-  // Tag Actions - بدون تغییر
+  // Tag Actions
   const fetchTags = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -437,6 +572,15 @@ export const useTaskStore = defineStore("task", () => {
       tasks.value.forEach((task) => {
         task.tags = task.tags.filter((tag) => tag.id !== tagId);
       });
+      tasksByDate.value.forEach((tasks, date) => {
+        tasksByDate.value.set(
+          date,
+          tasks.map((task) => ({
+            ...task,
+            tags: task.tags.filter((tag) => tag.id !== tagId),
+          })),
+        );
+      });
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorDeletingTag || "Error deleting tag";
@@ -446,7 +590,7 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  // Utility Actions - بدون تغییر
+  // Utility Actions
   const clearError = (): void => {
     error.value = null;
   };
@@ -487,6 +631,7 @@ export const useTaskStore = defineStore("task", () => {
     tags: readonly(tags),
     loading: readonly(loading),
     error: readonly(error),
+    tasksByDate: readonly(tasksByDate),
 
     // Getters
     completedTasks,
@@ -498,9 +643,11 @@ export const useTaskStore = defineStore("task", () => {
     todayTasks,
     upcomingTasks,
     taskStats,
+    tasksForDate,
 
     // Task Actions
     fetchTasks,
+    fetchTasksByDate,
     addTask,
     updateTask,
     deleteTask: removeTask,

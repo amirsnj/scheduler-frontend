@@ -49,6 +49,8 @@ export const locales = {
     errorDeletingTag: "Error deleting tag",
     TheTagIsAlreadyExists: "The Tag is already exists",
     TheListIsAlreadyExists: "The Category is already exists",
+    previousDay: "Previous Day",
+    nextDay: "Next Day",
   },
   fa: {
     menu: "منو",
@@ -99,5 +101,7 @@ export const locales = {
     errorDeletingTag: "خطا در حذف تگ",
     TheTagIsAlreadyExists: "این تگ قبلا ایجاد شده است",
     TheListIsAlreadyExists: "این دسته بندی قبلا ایجاد شده است",
+    previousDay: "روز قبل",
+    nextDay: "روز بعد",
   },
 };

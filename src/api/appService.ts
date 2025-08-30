@@ -16,6 +16,17 @@ export interface TaskUpdate {
 
 // ============= TASK CATEGORY SERVICES =============
 
+export const getTasksByDate = async (date: string) => {
+  try {
+    const response = await apiClient.get(
+      `/api/schedule/tasks/?category=&scheduled_date=${date}`,
+    );
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getTaskCategories = async (): Promise<
   AxiosResponse<TaskList[]>
 > => {

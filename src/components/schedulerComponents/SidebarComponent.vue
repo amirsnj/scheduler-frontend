@@ -392,7 +392,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, computed } from "vue";
+import { ref, nextTick } from "vue";
 import type { Task, TaskList, Tag, Locale } from "@/types/index";
 import { useTaskStore } from "@/store/index";
 
