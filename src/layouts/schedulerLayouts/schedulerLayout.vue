@@ -116,10 +116,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import SidebarComponent from "@/components/schedulerComponents/SidebarComponent.vue";
-import MainContent from "@/components/schedulerComponents/MainContent.vue";
-import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
+import MainContent from "@/views/schedulerViews/MainContent.vue";
+import RightPanel from "@/views/schedulerViews/RightPanel.vue";
 import { locales } from "@/locales/schedulerLocales/index";
-import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
+import type { Task, TaskCreate, TaskList, Tag } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/index";
 import { useNotificationStore } from "@/store/notificationStore";

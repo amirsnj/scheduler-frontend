@@ -4,7 +4,6 @@
     class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col"
     :class="{ 'rounded-none': isMobile }"
   >
-    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-lg font-semibold text-gray-900">
         {{
