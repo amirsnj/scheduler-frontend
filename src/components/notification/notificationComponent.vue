@@ -1,18 +1,17 @@
 <template>
   <Teleport to="body">
-    <div class="notification-container" :class="{ 'rtl': currentLanguage === 'fa' }">
-      <TransitionGroup
-        name="notification"
-        tag="div"
-        class="notification-list"
-      >
+    <div
+      class="notification-container"
+      :class="{ rtl: currentLanguage === 'fa' }"
+    >
+      <TransitionGroup name="notification" tag="div" class="notification-list">
         <div
           v-for="notification in notifications"
           :key="notification.id"
           :class="[
             'notification',
             `notification-${notification.type}`,
-            { 'notification-rtl': currentLanguage === 'fa' }
+            { 'notification-rtl': currentLanguage === 'fa' },
           ]"
           @click="removeNotification(notification.id)"
         >
@@ -31,7 +30,7 @@
             >
               <polyline points="20,6 9,17 4,12" />
             </svg>
-            
+
             <!-- Error Icon -->
             <svg
               v-else-if="notification.type === 'error'"
@@ -47,7 +46,7 @@
               <line x1="15" y1="9" x2="9" y2="15" />
               <line x1="9" y1="9" x2="15" y2="15" />
             </svg>
-            
+
             <!-- Warning Icon -->
             <svg
               v-else-if="notification.type === 'warning'"
@@ -59,11 +58,13 @@
               stroke-width="2"
               class="text-yellow-600"
             >
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <path
+                d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
+              />
               <path d="M12 9v4" />
               <path d="m12 17 .01 0" />
             </svg>
-            
+
             <!-- Info Icon -->
             <svg
               v-else
@@ -80,12 +81,12 @@
               <path d="m12 8 .01 0" />
             </svg>
           </div>
-          
+
           <!-- Message -->
           <div class="notification-message">
             {{ notification.message }}
           </div>
-          
+
           <!-- Close Button -->
           <button
             class="notification-close"
@@ -111,17 +112,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useNotificationStore } from "@/store/notificationStore"
-import { currentLanguage } from '@/main'
+import { computed } from "vue";
+import { useNotificationStore } from "@/store/notificationStore";
+import { currentLanguage } from "@/main";
 
-const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore();
 
-const notifications = computed(() => notificationStore.getNotifications)
+const notifications = computed(() => notificationStore.getNotifications);
 
 const removeNotification = (id: number) => {
-  notificationStore.removeNotification(id)
-}
+  notificationStore.removeNotification(id);
+};
 </script>
 
 <style scoped>
@@ -152,7 +153,9 @@ const removeNotification = (id: number) => {
   padding: 16px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.05);
   border-left: 4px solid;
   pointer-events: auto;
   cursor: pointer;
@@ -163,7 +166,9 @@ const removeNotification = (id: number) => {
 
 .notification:hover {
   transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15), 0 6px 10px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.15),
+    0 6px 10px rgba(0, 0, 0, 0.08);
 }
 
 .notification-rtl {
@@ -260,16 +265,16 @@ const removeNotification = (id: number) => {
     left: 10px;
     width: auto;
   }
-  
+
   .notification-container.rtl {
     right: 10px;
     left: 10px;
   }
-  
+
   .notification-list {
     max-width: none;
   }
-  
+
   .notification {
     min-width: auto;
     max-width: none;
@@ -281,25 +286,27 @@ const removeNotification = (id: number) => {
   .notification {
     background: #1f2937;
     color: #f9fafb;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 4px 6px rgba(0, 0, 0, 0.2);
+    box-shadow:
+      0 10px 25px rgba(0, 0, 0, 0.3),
+      0 4px 6px rgba(0, 0, 0, 0.2);
   }
-  
+
   .notification-message {
     color: #f3f4f6;
   }
-  
+
   .notification-success {
     background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
   }
-  
+
   .notification-error {
     background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
   }
-  
+
   .notification-warning {
     background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
   }
-  
+
   .notification-info {
     background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   }

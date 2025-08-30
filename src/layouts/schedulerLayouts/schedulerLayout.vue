@@ -1,10 +1,13 @@
 <template>
-  <div :dir="currentLanguage === 'fa' ? 'rtl' : 'ltr'" class="min-h-screen bg-gray-50">
+  <div
+    :dir="currentLanguage === 'fa' ? 'rtl' : 'ltr'"
+    class="min-h-screen bg-gray-50"
+  >
     <!-- Main Layout -->
     <div class="flex h-screen">
       <!-- Sidebar Component -->
       <div class="hidden lg:block">
-        <SidebarComponent 
+        <SidebarComponent
           :current-language="currentLanguage"
           :locales="locales"
           :active-item="activeItem"
@@ -19,14 +22,17 @@
       </div>
 
       <!-- Mobile Sidebar -->
-      <div v-if="isMobileMenuOpen" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" @click="closeMobileMenu"></div>
-      
-      <div class="lg:hidden fixed z-50 h-full transition-transform duration-300 ease-in-out"
-           :class="[
-             'sidebar-mobile',
-             isMobileMenuOpen ? 'open' : ''
-           ]">
-        <SidebarComponent 
+      <div
+        v-if="isMobileMenuOpen"
+        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+        @click="closeMobileMenu"
+      ></div>
+
+      <div
+        class="lg:hidden fixed z-50 h-full transition-transform duration-300 ease-in-out"
+        :class="['sidebar-mobile', isMobileMenuOpen ? 'open' : '']"
+      >
+        <SidebarComponent
           :current-language="currentLanguage"
           :locales="locales"
           :active-item="activeItem"
@@ -77,7 +83,10 @@
         </div>
 
         <!-- Mobile Right Panel -->
-        <div v-if="showMobilePanel" class="lg:hidden fixed inset-0 z-50 bg-white">
+        <div
+          v-if="showMobilePanel"
+          class="lg:hidden fixed inset-0 z-50 bg-white"
+        >
           <RightPanel
             :current-language="currentLanguage"
             :locales="locales"
@@ -98,22 +107,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import SidebarComponent from '@/components/schedulerComponents/SidebarComponent.vue';
-import MainContent from '@/components/schedulerComponents/MainContent.vue';
-import RightPanel from '@/components/schedulerComponents/RightPanel.vue';
-import { locales } from '@/locales/schedulerLocales/index';
-import type { Task, TaskCreate, TaskList, Tag, SubTask, SubTaskCreate } from '@/types/index';
-import { currentLanguage } from '@/main';
-import { useTaskStore } from '@/store/index';
-import { useNotificationStore } from '@/store/notificationStore';
+import { ref, computed, onMounted } from "vue";
+import SidebarComponent from "@/components/schedulerComponents/SidebarComponent.vue";
+import MainContent from "@/components/schedulerComponents/MainContent.vue";
+import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
+import { locales } from "@/locales/schedulerLocales/index";
+import type {
+  Task,
+  TaskCreate,
+  TaskList,
+  Tag,
+  SubTask,
+  SubTaskCreate,
+} from "@/types/index";
+import { currentLanguage } from "@/main";
+import { useTaskStore } from "@/store/index";
+import { useNotificationStore } from "@/store/notificationStore";
 
 // Pinia store
 const taskStore = useTaskStore();
-const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore();
 
 // Reactive data
-const activeItem = ref<string>('today');
+const activeItem = ref<string>("today");
 const selectedTask = ref<Task | null>(null);
 const isMobileMenuOpen = ref<boolean>(false);
 const showMobilePanel = ref<boolean>(false);
@@ -121,17 +137,20 @@ const showAddTaskPanel = ref<boolean>(false);
 
 // Computed
 const filteredTasks = computed<Task[]>(() => {
-  if (activeItem.value === 'today') { 
+  if (activeItem.value === "today") {
     return taskStore.todayTasks;
   }
-  if (activeItem.value === 'upcoming') {
+  if (activeItem.value === "upcoming") {
     return taskStore.upcomingTasks;
   }
-  if (activeItem.value === 'completed') {
+  if (activeItem.value === "completed") {
     return taskStore.completedTasks;
   }
-  if (typeof activeItem.value === 'string' && activeItem.value.startsWith('category-')) {
-    const categoryId = parseInt(activeItem.value.split('-')[1]);
+  if (
+    typeof activeItem.value === "string" &&
+    activeItem.value.startsWith("category-")
+  ) {
+    const categoryId = parseInt(activeItem.value.split("-")[1]);
     return taskStore.tasksByCategory(categoryId);
   }
   return taskStore.tasks;
@@ -139,7 +158,7 @@ const filteredTasks = computed<Task[]>(() => {
 
 // Methods
 const handleLanguageChange = (): void => {
-  currentLanguage.value = currentLanguage.value === 'en' ? 'fa' : 'en';
+  currentLanguage.value = currentLanguage.value === "en" ? "fa" : "en";
 };
 
 const handleItemSelected = (item: string): void => {
@@ -171,25 +190,27 @@ const handleToggleTaskCompletion = async (taskId: number): Promise<void> => {
   try {
     await taskStore.toggleTaskComplete(taskId);
   } catch (error) {
-    console.error('Error toggling task completion:', error);
+    console.error("Error toggling task completion:", error);
     notificationStore.showError(
-      locales[currentLanguage.value].errorUpdatingTask || 'Error updating task'
+      locales[currentLanguage.value].errorUpdatingTask || "Error updating task",
     );
   }
 };
 
-const handleSaveTask = async (taskData: TaskCreate & { isAddingTask: boolean }): Promise<void> => {
+const handleSaveTask = async (
+  taskData: TaskCreate & { isAddingTask: boolean },
+): Promise<void> => {
   try {
     if (taskData.isAddingTask) {
       // ایجاد تسک جدید
       await taskStore.addTask(taskData);
       showAddTaskPanel.value = false;
-      
+
       // نمایش پیام موفقیت
       notificationStore.showSuccess(
-        locales[currentLanguage.value].taskCreated || 'Task created successfully'
+        locales[currentLanguage.value].taskCreated ||
+          "Task created successfully",
       );
-      
     } else if (selectedTask.value) {
       // آپدیت تسک موجود
       await taskStore.updateTask(selectedTask.value.id, {
@@ -203,31 +224,33 @@ const handleSaveTask = async (taskData: TaskCreate & { isAddingTask: boolean }):
         is_completed: taskData.is_completed || false,
         subTasks: taskData.subTasks,
         tags: taskData.tags
-          .map(tagId => taskStore.tags.find(t => t.id === tagId))
+          .map((tagId) => taskStore.tags.find((t) => t.id === tagId))
           .filter((tag): tag is Tag => !!tag),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
-      
+
       selectedTask.value = null;
-      
+
       // نمایش پیام موفقیت
       notificationStore.showSuccess(
-        locales[currentLanguage.value].taskUpdated || 'Task updated successfully'
+        locales[currentLanguage.value].taskUpdated ||
+          "Task updated successfully",
       );
     }
-    
+
     // بستن پنل در موبایل
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
     }
-    
   } catch (error) {
     // نمایش پیام خطا
-    console.error('Error saving task:', error);
+    console.error("Error saving task:", error);
     notificationStore.showError(
-      taskData.isAddingTask 
-        ? (locales[currentLanguage.value].errorCreatingTask || 'Error creating task')
-        : (locales[currentLanguage.value].errorUpdatingTask || 'Error updating task')
+      taskData.isAddingTask
+        ? locales[currentLanguage.value].errorCreatingTask ||
+            "Error creating task"
+        : locales[currentLanguage.value].errorUpdatingTask ||
+            "Error updating task",
     );
   }
 };
@@ -237,20 +260,21 @@ const handleDeleteTask = async (): Promise<void> => {
     try {
       await taskStore.deleteTask(selectedTask.value.id);
       selectedTask.value = null;
-      
+
       if (window.innerWidth < 1024) {
         showMobilePanel.value = false;
       }
-      
+
       // نمایش پیام موفقیت
       notificationStore.showSuccess(
-        locales[currentLanguage.value].taskDeleted || 'Task deleted successfully'
+        locales[currentLanguage.value].taskDeleted ||
+          "Task deleted successfully",
       );
-      
     } catch (error) {
-      console.error('Error deleting task:', error);
+      console.error("Error deleting task:", error);
       notificationStore.showError(
-        locales[currentLanguage.value].errorDeletingTask || 'Error deleting task'
+        locales[currentLanguage.value].errorDeletingTask ||
+          "Error deleting task",
       );
     }
   }
@@ -284,18 +308,18 @@ const closeMobileMenu = (): void => {
 };
 
 // Helper function to get priority color
-const getPriorityColor = (level: 'L' | 'M' | 'H'): string => {
+const getPriorityColor = (level: "L" | "M" | "H"): string => {
   const colors = {
-    'L': 'bg-green-500', // Low
-    'M': 'bg-yellow-500', // Medium
-    'H': 'bg-orange-500' // High
+    L: "bg-green-500", // Low
+    M: "bg-yellow-500", // Medium
+    H: "bg-orange-500", // High
   };
-  return colors[level] || 'bg-gray-500';
+  return colors[level] || "bg-gray-500";
 };
 
 // Helper function to format date
 const formatDate = (dateString: string | null): string => {
-  if (!dateString) return '';
+  if (!dateString) return "";
   return new Date(dateString).toLocaleDateString();
 };
 

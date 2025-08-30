@@ -1,10 +1,10 @@
-import { createApp, ref } from 'vue'
-import './style.css'
-import App from './App.vue'
-import { createPinia } from 'pinia';
-import router from './router'
+import { createApp, ref } from "vue";
+import "./style.css";
+import App from "./App.vue";
+import { createPinia } from "pinia";
+import router from "./router";
 
-export const currentLanguage = ref<'en' | 'fa'>('en');
+export const currentLanguage = ref<"en" | "fa">("en");
 
 const app = createApp(App);
 const pinia = createPinia();

@@ -29,7 +29,7 @@ export interface Task {
   title: string;
   description: string;
   category?: number | null;
-  priority_level: 'L' | 'M' | 'H';
+  priority_level: "L" | "M" | "H";
   scheduled_date: string;
   dead_line?: string | null;
   is_completed: boolean;
@@ -43,7 +43,7 @@ export interface TaskCreate {
   title: string;
   description?: string;
   category?: number | null;
-  priority_level?: 'L' | 'M' | 'H';
+  priority_level?: "L" | "M" | "H";
   scheduled_date?: string;
   dead_line?: string | null;
   is_completed?: boolean; // اضافه شده

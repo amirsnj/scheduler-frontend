@@ -1,18 +1,33 @@
 <template>
-  <div v-if="showPanel" class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col" :class="{ 'rounded-none': isMobile }">
+  <div
+    v-if="showPanel"
+    class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col"
+    :class="{ 'rounded-none': isMobile }"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-lg font-semibold text-gray-900">
-        {{ isAddingTask ? locales[currentLanguage].addNewTask : locales[currentLanguage].editTask }}
+        {{
+          isAddingTask
+            ? locales[currentLanguage].addNewTask
+            : locales[currentLanguage].editTask
+        }}
       </h2>
-      <button 
+      <button
         v-if="isMobile"
         class="p-2 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
         @click="$emit('close-panel')"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </div>
@@ -21,12 +36,14 @@
       <!-- Task Title -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          {{ locales[currentLanguage].taskTitle || 'Task Title' }}
+          {{ locales[currentLanguage].taskTitle || "Task Title" }}
         </label>
-        <input 
+        <input
           v-model="taskTitle"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          :placeholder="locales[currentLanguage].taskTitle || 'Enter task title'"
+          :placeholder="
+            locales[currentLanguage].taskTitle || 'Enter task title'
+          "
           required
         />
       </div>
@@ -34,13 +51,15 @@
       <!-- Description -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          {{ locales[currentLanguage].description || 'Description' }}
+          {{ locales[currentLanguage].description || "Description" }}
         </label>
-        <textarea 
+        <textarea
           v-model="taskDescription"
           rows="3"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          :placeholder="locales[currentLanguage].taskDescription || 'Enter task description'"
+          :placeholder="
+            locales[currentLanguage].taskDescription || 'Enter task description'
+          "
         ></textarea>
       </div>
 
@@ -48,13 +67,15 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].category || 'Category' }}
+            {{ locales[currentLanguage].category || "Category" }}
           </label>
-          <select 
+          <select
             v-model="taskCategory"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option :value="null">{{ locales[currentLanguage].noCategory || 'No Category' }}</option>
+            <option :value="null">
+              {{ locales[currentLanguage].noCategory || "No Category" }}
+            </option>
             <option v-for="list in taskLists" :key="list.id" :value="list.id">
               {{ list.title }}
             </option>
@@ -63,15 +84,21 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].priority || 'Priority' }}
+            {{ locales[currentLanguage].priority || "Priority" }}
           </label>
-          <select 
+          <select
             v-model="taskPriority"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="L">{{ locales[currentLanguage].lowPriority || 'Low' }}</option>
-            <option value="M">{{ locales[currentLanguage].mediumPriority || 'Medium' }}</option>
-            <option value="H">{{ locales[currentLanguage].highPriority || 'High' }}</option>
+            <option value="L">
+              {{ locales[currentLanguage].lowPriority || "Low" }}
+            </option>
+            <option value="M">
+              {{ locales[currentLanguage].mediumPriority || "Medium" }}
+            </option>
+            <option value="H">
+              {{ locales[currentLanguage].highPriority || "High" }}
+            </option>
           </select>
         </div>
       </div>
@@ -80,9 +107,9 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].scheduledDate || 'Scheduled Date' }}
+            {{ locales[currentLanguage].scheduledDate || "Scheduled Date" }}
           </label>
-          <input 
+          <input
             v-model="taskScheduledDate"
             type="date"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -91,9 +118,9 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].deadline || 'Deadline' }}
+            {{ locales[currentLanguage].deadline || "Deadline" }}
           </label>
-          <input 
+          <input
             v-model="taskDeadline"
             type="date"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -104,24 +131,34 @@
       <!-- Tags -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          {{ locales[currentLanguage].tags || 'Tags' }}
+          {{ locales[currentLanguage].tags || "Tags" }}
         </label>
         <div class="flex flex-wrap gap-2 items-center mb-3">
-          <span 
+          <span
             v-for="tag in taskTags"
             :key="tag.id"
             class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium flex items-center gap-2"
           >
             {{ tag.title }}
-            <button @click="removeTag(tag.id)" class="text-blue-600 hover:text-blue-800">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+            <button
+              @click="removeTag(tag.id)"
+              class="text-blue-600 hover:text-blue-800"
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </span>
         </div>
-        
+
         <!-- Available Tags -->
         <div class="flex flex-wrap gap-2 items-center">
           <button
@@ -139,45 +176,61 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <label class="block text-sm font-medium text-gray-700">
-            {{ locales[currentLanguage].subtasks || 'Subtasks' }}
+            {{ locales[currentLanguage].subtasks || "Subtasks" }}
           </label>
-          <button 
+          <button
             class="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm transition-colors"
             @click="addSubtask"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            {{ locales[currentLanguage].addSubtask || 'Add Subtask' }}
+            {{ locales[currentLanguage].addSubtask || "Add Subtask" }}
           </button>
         </div>
-        
+
         <div class="space-y-2">
-          <div 
-            v-for="(subtask, index) in taskSubtasks" 
+          <div
+            v-for="(subtask, index) in taskSubtasks"
             :key="subtask.id || index"
             class="flex items-center gap-3 p-2 border border-gray-200 rounded-lg"
           >
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               :checked="subtask.is_completed"
               @change="toggleSubtask(index)"
               class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
-            <input 
+            <input
               v-model="subtask.title"
               class="flex-1 bg-transparent border-none outline-none text-sm"
               :class="{ 'line-through text-gray-500': subtask.is_completed }"
-              :placeholder="locales[currentLanguage].subtaskTitle || 'Subtask title'"
+              :placeholder="
+                locales[currentLanguage].subtaskTitle || 'Subtask title'
+              "
             />
-            <button 
+            <button
               @click="removeSubtask(index)"
               class="text-red-500 hover:text-red-700 p-1"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
@@ -187,13 +240,15 @@
       <!-- Task Status -->
       <div v-if="!isAddingTask">
         <label class="flex items-center gap-2 cursor-pointer">
-          <input 
+          <input
             type="checkbox"
             v-model="taskCompleted"
             class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
           />
           <span class="text-sm font-medium text-gray-700">
-            {{ locales[currentLanguage].markAsCompleted || 'Mark as completed' }}
+            {{
+              locales[currentLanguage].markAsCompleted || "Mark as completed"
+            }}
           </span>
         </label>
       </div>
@@ -202,22 +257,23 @@
     <!-- Footer Actions -->
     <div class="border-t border-gray-200 pt-4 mt-6">
       <div class="flex gap-3">
-        <button 
+        <button
           v-if="!isAddingTask"
           class="flex-1 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium"
           @click="$emit('delete-task')"
         >
-          {{ locales[currentLanguage].deleteTask || 'Delete Task' }}
+          {{ locales[currentLanguage].deleteTask || "Delete Task" }}
         </button>
-        <button 
+        <button
           class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           @click="saveTask"
           :disabled="!taskTitle.trim()"
           :class="{ 'opacity-50 cursor-not-allowed': !taskTitle.trim() }"
         >
-          {{ isAddingTask 
-            ? (locales[currentLanguage].createTask || 'Create Task')
-            : (locales[currentLanguage].updateTask || 'Update Task') 
+          {{
+            isAddingTask
+              ? locales[currentLanguage].createTask || "Create Task"
+              : locales[currentLanguage].updateTask || "Update Task"
           }}
         </button>
       </div>
@@ -226,8 +282,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import type { Task, TaskCreate, TaskList, Tag, SubTask, Locale } from '@/types/index';
+import { ref, watch, computed } from "vue";
+import type {
+  Task,
+  TaskCreate,
+  TaskList,
+  Tag,
+  SubTask,
+  Locale,
+} from "@/types/index";
 
 // تعریف props
 const props = defineProps<{
@@ -243,26 +306,26 @@ const props = defineProps<{
 
 // تعریف emits
 const emit = defineEmits<{
-  (e: 'save-task', taskData: TaskCreate & { isAddingTask: boolean }): void;
-  (e: 'delete-task'): void;
-  (e: 'close-panel'): void;
+  (e: "save-task", taskData: TaskCreate & { isAddingTask: boolean }): void;
+  (e: "delete-task"): void;
+  (e: "close-panel"): void;
 }>();
 
 // Reactive data
-const taskTitle = ref<string>('');
-const taskDescription = ref<string>('');
+const taskTitle = ref<string>("");
+const taskDescription = ref<string>("");
 const taskCategory = ref<number | null>(null);
-const taskPriority = ref<'L' | 'M' | 'H'>('L');
-const taskScheduledDate = ref<string>('');
-const taskDeadline = ref<string>('');
+const taskPriority = ref<"L" | "M" | "H">("L");
+const taskScheduledDate = ref<string>("");
+const taskDeadline = ref<string>("");
 const taskTags = ref<Tag[]>([]);
 const taskSubtasks = ref<SubTask[]>([]);
 const taskCompleted = ref<boolean>(false);
 
 // Computed
 const availableTags = computed(() => {
-  return props.tags.filter(tag => 
-    !taskTags.value.some(selectedTag => selectedTag.id === tag.id)
+  return props.tags.filter(
+    (tag) => !taskTags.value.some((selectedTag) => selectedTag.id === tag.id),
   );
 });
 
@@ -275,14 +338,14 @@ watch(
       taskDescription.value = newTask.description;
       taskCategory.value = newTask.category;
       taskPriority.value = newTask.priority_level;
-      taskScheduledDate.value = newTask.scheduled_date || '';
-      taskDeadline.value = newTask.dead_line || '';
+      taskScheduledDate.value = newTask.scheduled_date || "";
+      taskDeadline.value = newTask.dead_line || "";
       taskTags.value = [...newTask.tags];
       taskSubtasks.value = [...newTask.subTasks];
       taskCompleted.value = newTask.is_completed;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Watch isAddingTask to reset form
@@ -292,38 +355,38 @@ watch(
     if (isAdding) {
       resetForm();
     }
-  }
+  },
 );
 
 // Methods
 const resetForm = (): void => {
-  taskTitle.value = '';
-  taskDescription.value = '';
+  taskTitle.value = "";
+  taskDescription.value = "";
   taskCategory.value = null;
-  taskPriority.value = 'L';
-  taskScheduledDate.value = '';
-  taskDeadline.value = '';
+  taskPriority.value = "L";
+  taskScheduledDate.value = "";
+  taskDeadline.value = "";
   taskTags.value = [];
   taskSubtasks.value = [];
   taskCompleted.value = false;
 };
 
 const addTag = (tag: Tag): void => {
-  if (!taskTags.value.some(t => t.id === tag.id)) {
+  if (!taskTags.value.some((t) => t.id === tag.id)) {
     taskTags.value.push(tag);
   }
 };
 
 const removeTag = (tagId: number): void => {
-  taskTags.value = taskTags.value.filter(tag => tag.id !== tagId);
+  taskTags.value = taskTags.value.filter((tag) => tag.id !== tagId);
 };
 
 // 🔥 اصلاح addSubtask - تولید ID منحصر به فرد
 const addSubtask = (): void => {
   const newSubtask: SubTask = {
     id: Date.now() + Math.random(), // ID منحصر به فرد
-    title: '',
-    is_completed: false
+    title: "",
+    is_completed: false,
   };
   taskSubtasks.value.push(newSubtask);
 };
@@ -333,7 +396,8 @@ const removeSubtask = (index: number): void => {
 };
 
 const toggleSubtask = (index: number): void => {
-  taskSubtasks.value[index].is_completed = !taskSubtasks.value[index].is_completed;
+  taskSubtasks.value[index].is_completed =
+    !taskSubtasks.value[index].is_completed;
 };
 
 // 🔥 اصلاح کامل saveTask
@@ -348,18 +412,18 @@ const saveTask = (): void => {
     scheduled_date: taskScheduledDate.value || undefined,
     dead_line: taskDeadline.value || null,
     is_completed: taskCompleted.value, // ⭐ اضافه شده
-    tags: taskTags.value.map(tag => tag.id),
+    tags: taskTags.value.map((tag) => tag.id),
     subTasks: taskSubtasks.value
-      .filter(st => st.title.trim() !== '')
-      .map(st => ({
+      .filter((st) => st.title.trim() !== "")
+      .map((st) => ({
         id: st.id, // ⭐ حفظ ID برای آپدیت بهینه
         title: st.title.trim(),
-        is_completed: st.is_completed || false // ⭐ حفظ وضعیت
+        is_completed: st.is_completed || false, // ⭐ حفظ وضعیت
       })),
-    isAddingTask: props.isAddingTask
+    isAddingTask: props.isAddingTask,
   };
-  
-  emit('save-task', taskData);
+
+  emit("save-task", taskData);
 };
 </script>
 

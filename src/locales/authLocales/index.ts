@@ -11,7 +11,7 @@ export const locales = {
     noAccount: "Don't have an account?",
     signUpLink: "Sign up here",
     orContinue: "Or continue with",
-    
+
     // Register Page
     createAccount: "Create Account",
     getStarted: "Get started with your new account",
@@ -23,10 +23,10 @@ export const locales = {
     signInLink: "Sign in here",
     firstName: "First Name",
     lastName: "Last Name",
-    
+
     // Common
     loading: "Loading...",
-    
+
     // Error Messages
     emailRequired: "Email is required",
     emailInvalid: "Please enter a valid email",
@@ -38,13 +38,13 @@ export const locales = {
     acceptTermsRequired: "You must accept the terms and conditions",
 
     //MessageBox Error/success
-    registerSuccess: 'Registration completed successfully!',
-    loginSuccess: 'Login successful!',
-    invalidCredentials: 'Invalid username or password',
-    serverError: 'Server communication error',
-    unexpectedError: 'An unexpected error occurred. Please try again late.',
-    usedUsername: 'A user with that username already exists',
-    RedirectingtoLoginPage: "Redirecting to Login Page"
+    registerSuccess: "Registration completed successfully!",
+    loginSuccess: "Login successful!",
+    invalidCredentials: "Invalid username or password",
+    serverError: "Server communication error",
+    unexpectedError: "An unexpected error occurred. Please try again late.",
+    usedUsername: "A user with that username already exists",
+    RedirectingtoLoginPage: "Redirecting to Login Page",
   },
   fa: {
     // Login Page
@@ -58,7 +58,7 @@ export const locales = {
     noAccount: "حساب کاربری ندارید؟",
     signUpLink: "ثبت نام کنید",
     orContinue: "یا ادامه با",
-    
+
     // Register Page
     createAccount: "ایجاد حساب کاربری",
     getStarted: "با حساب کاربری جدید خود شروع کنید",
@@ -70,10 +70,10 @@ export const locales = {
     signInLink: "وارد شوید",
     firstName: "نام",
     lastName: "نام خانوادگی",
-    
+
     // Common
     loading: "در حال بارگذاری...",
-    
+
     // Error Messages
     emailRequired: "ایمیل الزامی است",
     emailInvalid: "لطفاً ایمیل معتبر وارد کنید",
@@ -85,12 +85,12 @@ export const locales = {
     acceptTermsRequired: "باید قوانین و مقررات را بپذیرید",
 
     //MessageBox messages
-    registerSuccess: 'ثبت‌نام با موفقیت انجام شد!',
-    loginSuccess: 'ورود با موفقیت انجام شد!',
-    invalidCredentials: 'نام کاربری یا رمز عبور نادرست است',
-    serverError: 'خطا در برقراری ارتباط با سرور',
-    unexpectedError: 'خطای غیرمنتظره‌ای رخ داد لطفا بعدا امتحان کنید.',
-    usedUsername: 'نام کاربری استفاده شده است',
-    RedirectingtoLoginPage: 'درحال انتقال به صفحه ورود'
-  }
+    registerSuccess: "ثبت‌نام با موفقیت انجام شد!",
+    loginSuccess: "ورود با موفقیت انجام شد!",
+    invalidCredentials: "نام کاربری یا رمز عبور نادرست است",
+    serverError: "خطا در برقراری ارتباط با سرور",
+    unexpectedError: "خطای غیرمنتظره‌ای رخ داد لطفا بعدا امتحان کنید.",
+    usedUsername: "نام کاربری استفاده شده است",
+    RedirectingtoLoginPage: "درحال انتقال به صفحه ورود",
+  },
 };
