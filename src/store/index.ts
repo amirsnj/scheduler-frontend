@@ -160,7 +160,7 @@ export const useTaskStore = defineStore("task", () => {
     error.value = null;
     try {
       const response = await getTasksByDate(date);
-      console.log("API response for date", date, response.data);
+      // const response = await getTasks({ scheduled_date: date });
       const fetchedTasks = Array.isArray(response.data)
         ? response.data
         : response.data.tasks || [];

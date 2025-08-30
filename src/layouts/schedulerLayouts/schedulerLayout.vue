@@ -69,6 +69,7 @@
             @previous-day="handlePreviousDay"
             @next-day="handleNextDay"
             @today="handleToday"
+            @update:selectedDate="handleDateSelected"
           />
         </div>
 
@@ -317,6 +318,12 @@ const handleNextDay = async (): Promise<void> => {
 
 const handleToday = async (): Promise<void> => {
   currentDate.value = new Date().toISOString().split("T")[0];
+  await taskStore.fetchTasksByDate(currentDate.value);
+};
+
+const handleDateSelected = async (date: string): Promise<void> => {
+  currentDate.value = date;
+  await taskStore.fetchTasksByDate(date);
 };
 
 // Initialize store

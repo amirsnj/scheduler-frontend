@@ -308,18 +308,6 @@ const props = defineProps<{
   currentDate: string; // New prop for syncing date
 }>();
 
-// تعریف emits
-const emit = defineEmits<{
-  (e: "task-selected", task: Task): void;
-  (e: "toggle-mobile-menu"): void;
-  (e: "add-task"): void;
-  (e: "toggle-task-completion", taskId: number): void;
-  (e: "previous-day"): void;
-  (e: "next-day"): void;
-  (e: "today"): void;
-  (e: "update:selectedDate", date: string): void; // Changed from date-selected
-}>();
-
 // Reactive data for date picker
 const selectedDate = ref<string>(props.currentDate);
 
