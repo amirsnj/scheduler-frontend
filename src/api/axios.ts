@@ -27,7 +27,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// درخواست‌ها
 apiClient.interceptors.request.use(
   (request: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem("token");
@@ -39,20 +38,17 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// پاسخ‌ها
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
-    // اگر 401 بود
     if (
       error.response &&
       error.response.status === 401 &&
       !originalRequest._retry
     ) {
       if (isRefreshing) {
-        // اگر همزمان چند درخواست 401 شدند، منتظر بمانند
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -72,7 +68,6 @@ apiClient.interceptors.response.use(
           throw new Error("No refresh token");
         }
 
-        // ارسال درخواست برای گرفتن توکن جدید
         const res = await axios.post(
           "http://127.0.0.1:8000/api/auth/refresh/",
           {
@@ -85,7 +80,6 @@ apiClient.interceptors.response.use(
 
         processQueue(null, newAccessToken);
 
-        // درخواست قبلی رو با توکن جدید دوباره ارسال کن
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
         return apiClient(originalRequest);
       } catch (err) {

@@ -194,7 +194,7 @@ export const getTag = async (id: number): Promise<AxiosResponse<Tag>> => {
   return response;
 };
 
-export const updateTag = async (
+export const updateTagService = async (
   id: number,
   data: { title: string },
 ): Promise<AxiosResponse<Tag>> => {
@@ -202,7 +202,9 @@ export const updateTag = async (
   return response;
 };
 
-export const deleteTag = async (id: number): Promise<AxiosResponse<void>> => {
+export const deleteTagService = async (
+  id: number,
+): Promise<AxiosResponse<void>> => {
   const response = await apiClient.delete(`/api/schedule/tags/${id}/`);
   return response;
 };
@@ -253,7 +255,6 @@ export const updateTask = async (taskId: number, taskData: any) => {
   return response;
 };
 
-// اگه تابع toggleTaskComplete وجود نداره، این رو هم اضافه کن
 export const toggleTaskComplete = async (
   taskId: number,
   isCompleted: boolean,

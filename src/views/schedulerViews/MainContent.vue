@@ -61,6 +61,9 @@ import CalendarNavigation from "@/components/scheduler/mainContentComponents/Cal
 import PageHeader from "@/components/scheduler/mainContentComponents/PageHeader.vue";
 import LoadingSpinner from "@/components/scheduler/mainContentComponents/LoadingSpinner.vue";
 import EmptyState from "@/components/scheduler/mainContentComponents/EmptyState.vue";
+import { useTaskStore } from "@/store";
+
+const taskStore = useTaskStore();
 
 // Props
 const props = defineProps<{
@@ -117,12 +120,10 @@ const getActiveItemTitle = (): string => {
 
   if (props.activeItem.startsWith("category-")) {
     const categoryId = parseInt(props.activeItem.split("-")[1]);
-    const categoryNames: Record<number, string> = {
-      1: "Work",
-      2: "Personal",
-      3: "Shopping",
-    };
-    return categoryNames[categoryId] || `Category ${categoryId}`;
+    const taskIndex = taskStore.taskLists.findIndex(
+      (list) => list.id === categoryId,
+    );
+    return taskStore.taskLists[taskIndex].title || `Category ${categoryId}`;
   }
 
   return props.activeItem;

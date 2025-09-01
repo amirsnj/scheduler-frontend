@@ -7,7 +7,7 @@ export interface Tag {
 export interface TaskList {
   id: number;
   title: string;
-  task_count: number;
+  task_count?: number;
 }
 
 export interface SubTask {

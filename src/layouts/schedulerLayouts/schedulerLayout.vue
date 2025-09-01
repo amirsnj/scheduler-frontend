@@ -16,15 +16,22 @@
           :tags="taskStore.tags"
           @item-selected="handleItemSelected"
           @language-changed="handleLanguageChange"
+          @tag-selected="handleTagSelected"
           @add-new-list="handleAddNewList"
           @add-new-tag="handleAddNewTag"
+          @edit-list="handleEditList"
+          @delete-list="handleDeleteList"
+          @edit-tag="handleEditTag"
+          @delete-tag="handleDeleteTag"
+          @settings-clicked="handleSettingsClicked"
+          @sign-out="handleSignOut"
         />
       </div>
 
       <!-- Mobile Sidebar -->
       <div
         v-if="isMobileMenuOpen"
-        class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+        class="lg:hidden fixed inset-0 bg-black opacity-60 z-40"
         @click="closeMobileMenu"
       ></div>
 
@@ -44,8 +51,15 @@
           @item-selected="handleItemSelected"
           @language-changed="handleLanguageChange"
           @close-mobile="closeMobileMenu"
+          @tag-selected="handleTagSelected"
           @add-new-list="handleAddNewList"
           @add-new-tag="handleAddNewTag"
+          @edit-list="handleEditList"
+          @delete-list="handleDeleteList"
+          @edit-tag="handleEditTag"
+          @delete-tag="handleDeleteTag"
+          @settings-clicked="handleSettingsClicked"
+          @sign-out="handleSignOut"
         />
       </div>
 
@@ -110,14 +124,26 @@
         </div>
       </div>
     </div>
+
+    <!-- Confirm Delete Modal -->
+    <ConfirmDeleteModal
+      :is-visible="showDeleteModal"
+      :title="deleteModalData.title"
+      :message="deleteModalData.message"
+      :confirm-text="locales[currentLanguage].delete"
+      :cancel-text="locales[currentLanguage].cancel"
+      @confirm="handleConfirmDelete"
+      @cancel="handleCancelDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import SidebarComponent from "@/components/schedulerComponents/SidebarComponent.vue";
+import SidebarComponent from "@/views/schedulerViews/SideBar.vue";
 import MainContent from "@/views/schedulerViews/MainContent.vue";
 import RightPanel from "@/views/schedulerViews/RightPanel.vue";
+import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
 import type { Task, TaskCreate, TaskList, Tag } from "@/types/index";
 import { currentLanguage } from "@/main";
@@ -136,8 +162,25 @@ const showMobilePanel = ref<boolean>(false);
 const showAddTaskPanel = ref<boolean>(false);
 const currentDate = ref<string>(new Date().toISOString().split("T")[0]);
 
+// Delete modal state
+const showDeleteModal = ref<boolean>(false);
+const deleteModalData = ref<{
+  title: string;
+  message: string;
+  type: "list" | "tag";
+  id: number;
+}>({
+  title: "",
+  message: "",
+  type: "list",
+  id: 0,
+});
+
 // Computed
 const filteredTasks = computed<Task[]>(() => {
+  if (activeItem.value === "all-tasks") {
+    return [...taskStore.todayTasks, ...taskStore.upcomingTasks]; // همه تسک‌ها
+  }
   if (activeItem.value === "today") {
     return taskStore.todayTasks;
   }
@@ -178,6 +221,12 @@ const handleItemSelected = async (item: string): Promise<void> => {
   }
 };
 
+const handleTagSelected = (tagId: number): void => {
+  // Logic for filtering tasks by selected tag
+  console.log("Tag selected:", tagId);
+  // You can implement tag-based filtering here
+};
+
 const handleTaskSelected = (task: Task): void => {
   selectedTask.value = task;
   showAddTaskPanel.value = false;
@@ -212,10 +261,7 @@ const handleSaveTask = async (
     if (taskData.isAddingTask) {
       await taskStore.addTask(taskData);
       showAddTaskPanel.value = false;
-      notificationStore.showSuccess(
-        locales[currentLanguage.value].taskCreated ||
-          "Task created successfully",
-      );
+      notificationStore.showSuccess(locales[currentLanguage.value].taskCreated);
     } else if (selectedTask.value) {
       await taskStore.updateTask(selectedTask.value.id, {
         id: selectedTask.value.id,
@@ -233,10 +279,7 @@ const handleSaveTask = async (
         updated_at: new Date().toISOString(),
       });
       selectedTask.value = null;
-      notificationStore.showSuccess(
-        locales[currentLanguage.value].taskUpdated ||
-          "Task updated successfully",
-      );
+      notificationStore.showSuccess(locales[currentLanguage.value].taskUpdated);
     }
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
@@ -261,26 +304,138 @@ const handleDeleteTask = async (): Promise<void> => {
       if (window.innerWidth < 1024) {
         showMobilePanel.value = false;
       }
-      notificationStore.showSuccess(
-        locales[currentLanguage.value].taskDeleted ||
-          "Task deleted successfully",
-      );
+      notificationStore.showSuccess(locales[currentLanguage.value].taskDeleted);
     } catch (error) {
-      console.error("Error deleting task:", error);
       notificationStore.showError(
-        locales[currentLanguage.value].errorDeletingTask ||
-          "Error deleting task",
+        locales[currentLanguage.value].errorDeletingTask,
       );
     }
   }
 };
 
+// New methods for list and tag management
 const handleAddNewList = async (list: TaskList): Promise<void> => {
-  await taskStore.addTaskList({ title: list.title });
+  try {
+    await taskStore.addTaskList({ title: list.title });
+    notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
+  } catch (error) {
+    console.log("error adding new list:", error);
+    notificationStore.showError(
+      locales[currentLanguage.value].errorCreatingList,
+    );
+  }
 };
 
 const handleAddNewTag = async (tag: Tag): Promise<void> => {
-  await taskStore.addTag({ title: tag.title });
+  try {
+    await taskStore.addTag({ title: tag.title });
+    notificationStore.showSuccess(locales[currentLanguage.value].tagCreated);
+  } catch (error) {
+    console.error("Error adding tag:", error);
+    notificationStore.showError(
+      locales[currentLanguage.value].errorCreatingTag,
+    );
+  }
+};
+
+const handleEditList = async (
+  listId: number,
+  newTitle: string,
+): Promise<void> => {
+  try {
+    await taskStore.updateTaskList(listId, { title: newTitle });
+    notificationStore.showSuccess(locales[currentLanguage.value].listUpdated);
+  } catch (error) {
+    console.error("Error editing list:", error);
+    notificationStore.showError(
+      locales[currentLanguage.value].errorUpdatingList,
+    );
+  }
+};
+
+const handleDeleteList = (listId: number): void => {
+  const list = taskStore.taskLists.find((l) => l.id === listId);
+  if (list) {
+    deleteModalData.value = {
+      title: locales[currentLanguage.value].deleteList,
+      message: `${locales[currentLanguage.value].deleteConfirm || "Are you sure you want to delete"} "${list.title}"? ${locales[currentLanguage.value].deleteWarning || "This action cannot be undone."}`,
+      type: "list",
+      id: listId,
+    };
+    showDeleteModal.value = true;
+  }
+};
+
+const handleEditTag = async (
+  tagId: number,
+  newTitle: string,
+): Promise<void> => {
+  try {
+    await taskStore.updateTag(tagId, { title: newTitle });
+    notificationStore.showSuccess(
+      locales[currentLanguage.value].tagUpdated || "Tag updated successfully",
+    );
+  } catch (error) {
+    console.error("Error editing tag:", error);
+    notificationStore.showError(
+      locales[currentLanguage.value].errorUpdatingTag || "Error updating tag",
+    );
+  }
+};
+
+const handleDeleteTag = (tagId: number): void => {
+  const tag = taskStore.tags.find((t) => t.id === tagId);
+  if (tag) {
+    deleteModalData.value = {
+      title: locales[currentLanguage.value].deleteTag || "Delete Tag",
+      message: `${locales[currentLanguage.value].deleteConfirm || "Are you sure you want to delete"} "${tag.title}"? ${locales[currentLanguage.value].deleteWarning || "This action cannot be undone."}`,
+      type: "tag",
+      id: tagId,
+    };
+    showDeleteModal.value = true;
+  }
+};
+
+const handleConfirmDelete = async (): Promise<void> => {
+  try {
+    if (deleteModalData.value.type === "list") {
+      await taskStore.deleteTaskList(deleteModalData.value.id);
+      notificationStore.showSuccess(
+        locales[currentLanguage.value].listDeleted ||
+          "List deleted successfully",
+      );
+    } else {
+      await taskStore.deleteTag(deleteModalData.value.id);
+      notificationStore.showSuccess(
+        locales[currentLanguage.value].tagDeleted || "Tag deleted successfully",
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting:", error);
+    notificationStore.showError(
+      deleteModalData.value.type === "list"
+        ? locales[currentLanguage.value].errorDeletingList ||
+            "Error deleting list"
+        : locales[currentLanguage.value].errorDeletingTag ||
+            "Error deleting tag",
+    );
+  } finally {
+    showDeleteModal.value = false;
+  }
+};
+
+const handleCancelDelete = (): void => {
+  showDeleteModal.value = false;
+};
+
+const handleSettingsClicked = (): void => {
+  // Navigate to settings or open settings modal
+  console.log("Settings clicked");
+};
+
+const handleSignOut = (): void => {
+  localStorage.clear();
+  location.reload();
 };
 
 const handleClosePanel = (): void => {

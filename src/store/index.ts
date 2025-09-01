@@ -14,8 +14,13 @@ import {
   updateTask as updateTaskAPI,
   toggleTaskComplete as toggleTaskAPI,
   getTasksByDate,
+  updateTaskCategory,
+  deleteTaskCategory,
+  updateTagService,
+  deleteTagService,
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
+import type { AxiosResponse } from "axios";
 
 const notificationStore = useNotificationStore();
 
@@ -450,16 +455,17 @@ export const useTaskStore = defineStore("task", () => {
 
   const updateTaskList = async (
     listId: number,
-    updates: Partial<TaskList>,
+    updates: Omit<TaskList, "id">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
+      const response = await updateTaskCategory(listId, updates);
+
       const listIndex = taskLists.value.findIndex((list) => list.id === listId);
       if (listIndex === -1) throw new Error("List not found");
       taskLists.value[listIndex] = {
-        ...taskLists.value[listIndex],
-        ...updates,
+        ...response.data,
       };
     } catch (err) {
       error.value =
@@ -475,12 +481,20 @@ export const useTaskStore = defineStore("task", () => {
     loading.value = true;
     error.value = null;
     try {
+      await deleteTaskCategory(listId);
+
       taskLists.value = taskLists.value.filter((list) => list.id !== listId);
-      tasks.value = tasks.value.filter((task) => task.category !== listId);
+
+      tasks.value = tasks.value.map((task) =>
+        task.category === listId ? { ...task, category: null } : task,
+      );
+
       tasksByDate.value.forEach((tasks, date) => {
         tasksByDate.value.set(
           date,
-          tasks.filter((task) => task.category !== listId),
+          tasks.map((task) =>
+            task.category === listId ? { ...task, category: null } : task,
+          ),
         );
       });
     } catch (err) {
@@ -547,14 +561,30 @@ export const useTaskStore = defineStore("task", () => {
 
   const updateTag = async (
     tagId: number,
-    updates: Partial<Tag>,
+    updates: Omit<Tag, "id">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
+      const response: AxiosResponse<Tag> = await updateTagService(
+        tagId,
+        updates,
+      );
       const tagIndex = tags.value.findIndex((tag) => tag.id === tagId);
       if (tagIndex === -1) throw new Error("Tag not found");
-      tags.value[tagIndex] = { ...tags.value[tagIndex], ...updates };
+      tags.value[tagIndex] = response.data;
+
+      tasks.value = tasks.value.map((task) => {
+        if (task.tags.some((tag) => tag.id === tagId)) {
+          return {
+            ...task,
+            tags: task.tags.map((tag) =>
+              tag.id === tagId ? response.data : tag,
+            ),
+          };
+        }
+        return task;
+      });
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorUpdatingTag || "Error updating tag";
@@ -568,10 +598,15 @@ export const useTaskStore = defineStore("task", () => {
     loading.value = true;
     error.value = null;
     try {
+      await deleteTagService(tagId);
+
       tags.value = tags.value.filter((tag) => tag.id !== tagId);
-      tasks.value.forEach((task) => {
-        task.tags = task.tags.filter((tag) => tag.id !== tagId);
-      });
+
+      tasks.value = tasks.value.map((task) => ({
+        ...task,
+        tags: task.tags.filter((tag) => tag.id !== tagId),
+      }));
+
       tasksByDate.value.forEach((tasks, date) => {
         tasksByDate.value.set(
           date,
