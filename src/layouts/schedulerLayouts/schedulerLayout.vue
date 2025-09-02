@@ -142,7 +142,8 @@
 import { ref, computed, onMounted } from "vue";
 import SidebarComponent from "@/views/schedulerViews/SideBar.vue";
 import MainContent from "@/views/schedulerViews/MainContent.vue";
-import RightPanel from "@/views/schedulerViews/RightPanel.vue";
+// import RightPanel from "@/views/schedulerViews/RightPanel.vue";
+import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
 import type { Task, TaskCreate, TaskList, Tag } from "@/types/index";

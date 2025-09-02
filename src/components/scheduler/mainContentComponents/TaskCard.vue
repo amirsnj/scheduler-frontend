@@ -123,7 +123,7 @@
         <span
           v-for="tag in task.tags.slice(0, 2)"
           :key="tag.id"
-          class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"
+          class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium"
         >
           {{ tag.title }}
         </span>

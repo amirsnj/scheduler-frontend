@@ -187,7 +187,7 @@
         </h3>
         <button
           @click="toggleListEditMode"
-          class="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          class="text-xs text-gray-400 hover:text-gray-600 hover:cursor-pointer transition-colors"
           :class="{ 'text-blue-600': isListEditMode }"
         >
           {{
@@ -228,7 +228,7 @@
         </h3>
         <button
           @click="toggleTagEditMode"
-          class="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          class="text-xs text-gray-400 hover:text-gray-600 hover:cursor-pointer transition-colors"
           :class="{ 'text-blue-600': isTagEditMode }"
         >
           {{

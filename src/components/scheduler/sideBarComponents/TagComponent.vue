@@ -46,7 +46,7 @@
   </div>
   <span
     v-else
-    class="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-medium cursor-pointer hover:bg-gray-200 transition-colors"
+    class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold cursor-pointer hover:bg-gray-200 transition-colors"
     :class="{ 'bg-blue-100 text-blue-600': isActive }"
     @click="$emit('click')"
   >
