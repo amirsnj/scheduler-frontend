@@ -126,7 +126,7 @@ export const useTaskStore = defineStore("task", () => {
       const response = await getTasks();
       tasks.value = Array.isArray(response.data)
         ? response.data
-        : response.data.tasks || [];
+        : (response.data as any).task || [];
       const today = new Date().toISOString().split("T")[0];
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -439,7 +439,7 @@ export const useTaskStore = defineStore("task", () => {
       const response = await createTaskCategory(listData);
       taskLists.value.push(response.data);
     } catch (err) {
-      if (err.status == 400) {
+      if ((err as any).status == 400) {
         notificationStore.showError(
           locales[currentLanguage.value].TheListIsAlreadyExists,
         );
@@ -545,7 +545,7 @@ export const useTaskStore = defineStore("task", () => {
       const response = await createTag(tagData);
       tags.value.push(response.data);
     } catch (err) {
-      if (err.status == 400) {
+      if ((err as any).status == 400) {
         notificationStore.showError(
           locales[currentLanguage.value].TheTagIsAlreadyExists,
         );
@@ -661,9 +661,9 @@ export const useTaskStore = defineStore("task", () => {
 
   return {
     // State
-    tasks: readonly(tasks),
-    taskLists: readonly(taskLists),
-    tags: readonly(tags),
+    tasks: tasks,
+    taskLists: taskLists,
+    tags: tags,
     loading: readonly(loading),
     error: readonly(error),
     tasksByDate: readonly(tasksByDate),

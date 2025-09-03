@@ -205,7 +205,7 @@ watch(
     if (newTask) {
       taskTitle.value = newTask.title;
       taskDescription.value = newTask.description;
-      taskCategory.value = newTask.category;
+      taskCategory.value = newTask.category || null;
       taskPriority.value = newTask.priority_level;
       taskScheduledDate.value = newTask.scheduled_date || "";
       taskDeadline.value = newTask.dead_line || "";

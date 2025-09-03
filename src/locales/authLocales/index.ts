@@ -36,6 +36,8 @@ export const locales = {
     confirmPasswordRequired: "Please confirm your password",
     passwordMismatch: "Passwords do not match",
     acceptTermsRequired: "You must accept the terms and conditions",
+    firstNameRequired: "First Name is required",
+    lastNameRequired: "Last Name is required",
 
     //MessageBox Error/success
     registerSuccess: "Registration completed successfully!",
@@ -83,6 +85,8 @@ export const locales = {
     confirmPasswordRequired: "لطفاً کلمه عبور را تأیید کنید",
     passwordMismatch: "کلمات عبور مطابقت ندارند",
     acceptTermsRequired: "باید قوانین و مقررات را بپذیرید",
+    firstNameRequired: "نام الزامی است",
+    lastNameRequired: "نام خانوادگی الزامی است",
 
     //MessageBox messages
     registerSuccess: "ثبت‌نام با موفقیت انجام شد!",

@@ -34,7 +34,7 @@
         v-for="task in tasks"
         :key="task.id"
         :task="task"
-        :is-selected="selectedTask && selectedTask.id === task.id"
+        :is-selected="!!(selectedTask && selectedTask.id === task.id)"
         :current-language="currentLanguage"
         :subtasks-text="
           locales[currentLanguage].subtasks?.toLowerCase() || 'subtasks'

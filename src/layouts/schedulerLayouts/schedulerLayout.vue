@@ -146,7 +146,7 @@ import MainContent from "@/views/schedulerViews/MainContent.vue";
 import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
-import type { Task, TaskCreate, TaskList, Tag } from "@/types/index";
+import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/index";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -244,9 +244,12 @@ const handleAddTask = (): void => {
   }
 };
 
-const handleToggleTaskCompletion = async (taskId: number): Promise<void> => {
+const handleToggleTaskCompletion = async (
+  taskId: number | string,
+): Promise<void> => {
+  const id = typeof taskId === "string" ? parseInt(taskId) : taskId;
   try {
-    await taskStore.toggleTaskComplete(taskId);
+    await taskStore.toggleTaskComplete(id);
   } catch (error) {
     console.error("Error toggling task completion:", error);
     notificationStore.showError(
@@ -273,7 +276,9 @@ const handleSaveTask = async (
         scheduled_date: taskData.scheduled_date,
         dead_line: taskData.dead_line,
         is_completed: taskData.is_completed || false,
-        subTasks: taskData.subTasks,
+        subTasks: taskData.subTasks.filter(
+          (subTask) => subTask.id !== undefined,
+        ) as SubTask[],
         tags: taskData.tags
           .map((tagId) => taskStore.tags.find((t) => t.id === tagId))
           .filter((tag): tag is Tag => !!tag),

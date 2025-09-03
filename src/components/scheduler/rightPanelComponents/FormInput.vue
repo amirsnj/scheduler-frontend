@@ -41,6 +41,8 @@ const props = defineProps<{
   rows?: number;
 }>();
 
+const { modelValue, label, type, placeholder, required, rows } = props;
+
 // Emits
 defineEmits<{
   "update:modelValue": [value: string];

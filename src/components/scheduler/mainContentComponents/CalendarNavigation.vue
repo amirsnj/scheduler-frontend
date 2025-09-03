@@ -40,6 +40,8 @@ const props = defineProps<{
   nextDayText: string;
 }>();
 
+const { selectedDate, isRtl, previousDayText, todayText, nextDayText } = props;
+
 // Emits
 const emit = defineEmits<{
   "previous-day": [];

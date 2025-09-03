@@ -76,6 +76,8 @@ const props = defineProps<{
   placeholder: string;
 }>();
 
+const { subtasks, label, addButtonText, placeholder } = props;
+
 // Emits
 const emit = defineEmits<{
   "add-subtask": [];
