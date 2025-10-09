@@ -1,4 +1,4 @@
-import { defineStore } from "pinia";
+import { defineStore, createPinia, setActivePinia } from "pinia";
 import { ref, computed, readonly } from "vue";
 import type { Tag, TaskList, SubTask, Task, TaskCreate } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
@@ -22,6 +22,7 @@ import {
 import { useNotificationStore } from "./notificationStore";
 import type { AxiosResponse } from "axios";
 
+setActivePinia(createPinia());
 const notificationStore = useNotificationStore();
 
 export const useTaskStore = defineStore("task", () => {

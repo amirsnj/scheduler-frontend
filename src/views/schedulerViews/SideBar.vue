@@ -2,7 +2,7 @@
   <div
     class="w-72 h-screen bg-white rounded-xl p-5 flex flex-col font-sans shadow-lg transition-transform duration-300 ease-in-out scrollbar-hide overflow-y-auto"
   >
-    <!-- Header -->
+    <!-- header -->
     <div class="mb-5">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -46,45 +46,21 @@
         </button>
       </div>
     </div>
-
-    <!-- Tasks Section -->
+    <!-- Task Section -->
     <div class="mb-8">
       <h3
         class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 ml-1"
       >
         {{ locales[currentLanguage].tasks }}
       </h3>
+      <!-- All Task Items -->
       <ul class="space-y-0.5">
-        <!-- All Tasks Item -->
         <TaskListItem
-          :title="locales[currentLanguage].allTasks || 'All Tasks'"
-          :count="[...taskStore.todayTasks, ...taskStore.upcomingTasks].length"
-          :is-active="activeItem === 'all-tasks'"
+          :title="locales[currentLanguage].allTasks"
+          :count="0"
+          :is-active="activeItem === 'all'"
           :show-count="true"
-          @click="setActive('all-tasks')"
-        >
-          <template #icon>
-            <svg
-              class="mr-3 flex-shrink-0"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-              <path d="M9 9h6m-6 4h6" />
-            </svg>
-          </template>
-        </TaskListItem>
-
-        <TaskListItem
-          :title="locales[currentLanguage].upcoming"
-          :count="taskStore.upcomingTasks.length"
-          :is-active="activeItem === 'upcoming'"
-          :show-count="true"
-          @click="setActive('upcoming')"
+          @click="setActive('all')"
         >
           <template #icon>
             <svg
@@ -105,33 +81,31 @@
         </TaskListItem>
 
         <TaskListItem
-          :title="locales[currentLanguage].today"
-          :count="taskStore.todayTasks.length"
-          :is-active="activeItem === 'today'"
+          :title="locales[currentLanguage].upcoming"
+          :count="0"
+          :is-active="activeItem === 'upcoming'"
           :show-count="true"
-          @click="setActive('today')"
+          @click="setActive('upcoming')"
         >
           <template #icon>
             <svg
-              class="mr-3 flex-shrink-0"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
+              class="mr-2.5 flex-shrink-0 fill-gray-500"
               stroke="currentColor"
               stroke-width="2"
+              height="18"
+              width="18"
+              viewBox="0 0 640 640"
             >
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
+              <path
+                d="M528 320C528 434.9 434.9 528 320 528C205.1 528 112 434.9 112 320C112 205.1 205.1 112 320 112C434.9 112 528 205.1 528 320zM64 320C64 461.4 178.6 576 320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320zM296 184L296 320C296 328 300 335.5 306.7 340L402.7 404C413.7 411.4 428.6 408.4 436 397.3C443.4 386.2 440.4 371.4 429.3 364L344 307.2L344 184C344 170.7 333.3 160 320 160C306.7 160 296 170.7 296 184z"
+              />
             </svg>
           </template>
         </TaskListItem>
 
         <TaskListItem
           :title="locales[currentLanguage].completed"
-          :count="taskStore.completedTasks.length"
+          :count="0"
           :is-active="activeItem === 'completed'"
           :show-count="true"
           @click="setActive('completed')"
@@ -177,7 +151,7 @@
       </ul>
     </div>
 
-    <!-- Lists Section -->
+    <!-- List Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between mb-3 ml-1">
         <h3
@@ -199,26 +173,25 @@
       </div>
       <ul class="space-y-0.5">
         <ListItemComponent
-          v-for="list in taskLists"
+          v-for="list in taskStore.taskLists"
           :key="list.id"
           :title="list.title"
           :count="taskStore.tasksByCategory(list.id).length"
           :color-class="getListColor(list.id % 10)"
-          :is-active="activeItem === `category-${list.id}`"
+          :is-active="activeItem === `list-${list.title}`"
           :is-edit-mode="isListEditMode && editingListId === list.id"
-          @click="handleListClick(list.id)"
+          @click="handleListClick(list)"
           @edit="handleEditList(list.id, $event)"
           @delete="handleDeleteList(list.id)"
         />
       </ul>
-
       <AddNewList
         :add-new-list-text="locales[currentLanguage].addNewList"
         @add-list="handleNewList"
       />
     </div>
 
-    <!-- Tags Section -->
+    <!-- Tag Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between mb-3 ml-1">
         <h3
@@ -240,7 +213,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <TagComponent
-          v-for="tag in tags"
+          v-for="tag in taskStore.tags"
           :key="tag.id"
           :title="tag.title"
           :is-active="activeTag === tag.id"
@@ -257,7 +230,6 @@
       />
     </div>
 
-    <!-- Footer -->
     <SidebarFooter
       :settings-text="locales[currentLanguage].settings"
       :sign-out-text="locales[currentLanguage].signOut"
@@ -300,6 +272,7 @@ const emit = defineEmits<{
   (e: "item-selected", item: string): void;
   (e: "language-changed"): void;
   (e: "close-mobile"): void;
+  (e: "list-selected", listName: string): void;
   (e: "tag-selected", tag: number): void;
   (e: "add-new-list", list: TaskList): void;
   (e: "add-new-tag", tag: Tag): void;
@@ -339,11 +312,11 @@ const toggleListEditMode = (): void => {
   }
 };
 
-const handleListClick = (listId: number): void => {
+const handleListClick = (list: TaskList): void => {
   if (isListEditMode.value) {
-    editingListId.value = editingListId.value === listId ? null : listId;
+    editingListId.value = editingListId.value === list.id ? null : list.id;
   } else {
-    setActive(`category-${listId}`);
+    emit("list-selected", list.title);
   }
 };
 

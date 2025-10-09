@@ -58,7 +58,9 @@
     </div>
 
     <!-- Task Info -->
-    <div class="flex items-center justify-between text-sm text-gray-500 ml-8">
+    <div
+      class="flex flex-wrap items-center justify-between gap-y-2 text-sm text-gray-500 ml-8"
+    >
       <div class="flex items-center gap-4">
         <!-- Scheduled Date -->
         <div v-if="task.scheduled_date" class="flex items-center gap-1">

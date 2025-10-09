@@ -16,6 +16,7 @@
           :tags="taskStore.tags"
           @item-selected="handleItemSelected"
           @language-changed="handleLanguageChange"
+          @list-selected="handleListSelected"
           @tag-selected="handleTagSelected"
           @add-new-list="handleAddNewList"
           @add-new-tag="handleAddNewTag"
@@ -52,6 +53,7 @@
           @language-changed="handleLanguageChange"
           @close-mobile="closeMobileMenu"
           @tag-selected="handleTagSelected"
+          @list-selected="handleListSelected"
           @add-new-list="handleAddNewList"
           @add-new-tag="handleAddNewTag"
           @edit-list="handleEditList"
@@ -67,24 +69,27 @@
       <div class="flex-1 flex">
         <!-- Task List Section -->
         <div class="flex-1 lg:flex-none lg:w-96 xl:w-1/2">
-          <MainContent
-            :current-language="currentLanguage"
-            :locales="locales"
-            :active-item="activeItem"
-            :tasks="filteredTasks"
-            :selected-task="selectedTask"
-            :is-loading="taskStore.loading"
-            :current-date="currentDate"
-            v-model:selectedDate="currentDate"
-            @task-selected="handleTaskSelected"
-            @toggle-mobile-menu="toggleMobileMenu"
-            @add-task="handleAddTask"
-            @toggle-task-completion="handleToggleTaskCompletion"
-            @previous-day="handlePreviousDay"
-            @next-day="handleNextDay"
-            @today="handleToday"
-            @update:selectedDate="handleDateSelected"
-          />
+          <router-view v-slot="{ Component }">
+            <component
+              :is="Component"
+              :current-language="currentLanguage"
+              :locales="locales"
+              :active-item="activeItem"
+              :tasks="filteredTasks"
+              :selected-task="selectedTask"
+              :is-loading="taskStore.loading"
+              :current-date="currentDate"
+              v-model:selectedDate="currentDate"
+              @task-selected="handleTaskSelected"
+              @toggle-mobile-menu="toggleMobileMenu"
+              @add-task="handleAddTask"
+              @toggle-task-completion="handleToggleTaskCompletion"
+              @previous-day="handlePreviousDay"
+              @next-day="handleNextDay"
+              @today="handleToday"
+              @update:selectedDate="handleDateSelected"
+            />
+          </router-view>
         </div>
 
         <!-- Right Panel -->
@@ -139,9 +144,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import SidebarComponent from "@/views/schedulerViews/SideBar.vue";
-import MainContent from "@/views/schedulerViews/MainContent.vue";
 // import RightPanel from "@/views/schedulerViews/RightPanel.vue";
 import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
@@ -150,13 +154,25 @@ import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/index";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useRoute, useRouter } from "vue-router";
 
 // Pinia store
 const taskStore = useTaskStore();
 const notificationStore = useNotificationStore();
 
+const router = useRouter();
+const route = useRoute();
+
+// const routeList = computed(() => route.query.list as string | undefined);
+// const routeFilter = computed(() => (route.query.filter as string) || "all");
+// const routeDate = computed(() => route.query.date as string | undefined);
+
+const routeList = computed(() => route.query.list as string | undefined);
+const routeFilter = computed(() => (route.params.filter as string) || "all"); // ✅ تغییر از query به params
+const routeDate = computed(() => route.query.date as string | undefined);
+
 // Reactive data
-const activeItem = ref<string>("today");
+const activeItem = ref<string>("all");
 const selectedTask = ref<Task | null>(null);
 const isMobileMenuOpen = ref<boolean>(false);
 const showMobilePanel = ref<boolean>(false);
@@ -177,31 +193,74 @@ const deleteModalData = ref<{
   id: 0,
 });
 
-// Computed
-const filteredTasks = computed<Task[]>(() => {
-  if (activeItem.value === "all-tasks") {
-    return [...taskStore.todayTasks, ...taskStore.upcomingTasks]; // همه تسک‌ها
+const filteredTasks = computed(() => {
+  // Filter by list/category
+  if (routeList.value) {
+    const targetList = taskStore.taskLists.find(
+      (taskList) => taskList.title === routeList.value,
+    );
+    if (targetList) {
+      return taskStore.tasksByCategory(targetList.id);
+    }
+    return [];
   }
-  if (activeItem.value === "today") {
-    return taskStore.todayTasks;
+
+  // Filter by date and filter type
+  switch (routeFilter.value) {
+    case "all":
+      return taskStore.todayTasks;
+
+    case "upcoming":
+      return taskStore.upcomingTasks;
+
+    case "completed":
+      return taskStore.completedTasks;
+
+    case "calendar":
+      if (routeDate.value) {
+        taskStore.fetchTasksByDate(routeDate.value);
+        return taskStore.tasksForDate(routeDate.value);
+      }
+      return taskStore.todayTasks;
+
+    default:
+      return taskStore.todayTasks;
   }
-  if (activeItem.value === "upcoming") {
-    return taskStore.upcomingTasks;
+});
+
+watch(routeFilter, (newVal) => {
+  activeItem.value = newVal;
+});
+
+// اضافه کردن watch برای routeList
+watch(routeList, (newVal) => {
+  if (newVal) {
+    activeItem.value = `list-${newVal}`;
   }
-  if (activeItem.value === "completed") {
-    return taskStore.completedTasks;
+});
+
+watch(
+  routeDate,
+  (newDate) => {
+    if (newDate && routeFilter.value === "calendar") {
+      currentDate.value = newDate;
+    }
+  },
+  { immediate: true },
+);
+
+watch(routeFilter, (newFilter) => {
+  activeItem.value = newFilter;
+
+  // اگر به calendar رفت و تاریخ نداشت، امروز را بگذار
+  if (newFilter === "calendar" && !routeDate.value) {
+    const today = new Date().toISOString().split("T")[0];
+    router.replace({
+      name: "Tasks",
+      params: { filter: "calendar" },
+      query: { date: today },
+    });
   }
-  if (
-    typeof activeItem.value === "string" &&
-    activeItem.value.startsWith("category-")
-  ) {
-    const categoryId = parseInt(activeItem.value.split("-")[1]);
-    return taskStore.tasksByCategory(categoryId);
-  }
-  if (activeItem.value === "calendar") {
-    return taskStore.tasksForDate(currentDate.value);
-  }
-  return taskStore.tasks;
 });
 
 // Methods
@@ -209,14 +268,59 @@ const handleLanguageChange = (): void => {
   currentLanguage.value = currentLanguage.value === "en" ? "fa" : "en";
 };
 
-const handleItemSelected = async (item: string): Promise<void> => {
+// const handleItemSelected = (item: string): void => {
+//   router.push({ path: `/scheduler/tasks/${item}` });
+//   activeItem.value = item;
+//   selectedTask.value = null;
+//   showAddTaskPanel.value = false;
+//   if (isMobileMenuOpen.value) {
+//     closeMobileMenu();
+//   }
+// };
+
+const handleItemSelected = (item: string): void => {
+  if (item === "calendar") {
+    const today = new Date().toISOString().split("T")[0];
+    router.push({
+      name: "Tasks",
+      params: { filter: "calendar" },
+      query: { date: today },
+    });
+  } else {
+    router.push({
+      name: "Tasks",
+      params: { filter: item },
+      query: {}, // پاک کردن query ها
+    });
+  }
   activeItem.value = item;
   selectedTask.value = null;
   showAddTaskPanel.value = false;
-  if (item === "calendar") {
-    currentDate.value = new Date().toISOString().split("T")[0];
-    await taskStore.fetchTasksByDate(currentDate.value);
+  if (isMobileMenuOpen.value) {
+    closeMobileMenu();
   }
+};
+
+// const handleListSelected = (listName: string): void => {
+//   router.push({ path: "/scheduler/tasks", query: { list: listName } });
+//   activeItem.value = `list-${listName}`;
+//   selectedTask.value = null;
+//   showAddTaskPanel.value = false;
+//   if (isMobileMenuOpen.value) {
+//     closeMobileMenu();
+//   }
+// };
+
+const handleListSelected = (listName: string): void => {
+  // ✅ استفاده از query برای list و params برای filter
+  router.push({
+    name: "Tasks",
+    params: { filter: "all" }, // یا می‌توانید undefined بگذارید
+    query: { list: listName },
+  });
+  activeItem.value = `list-${listName}`;
+  selectedTask.value = null;
+  showAddTaskPanel.value = false;
   if (isMobileMenuOpen.value) {
     closeMobileMenu();
   }
@@ -466,30 +570,62 @@ const closeMobileMenu = (): void => {
 const handlePreviousDay = async (): Promise<void> => {
   const date = new Date(currentDate.value);
   date.setDate(date.getDate() - 1);
-  currentDate.value = date.toISOString().split("T")[0];
-  await taskStore.fetchTasksByDate(currentDate.value);
+  const newDate = date.toISOString().split("T")[0];
+
+  currentDate.value = newDate;
+
+  router.push({
+    name: "Tasks",
+    params: { filter: "calendar" },
+    query: { date: newDate },
+  });
 };
 
 const handleNextDay = async (): Promise<void> => {
   const date = new Date(currentDate.value);
   date.setDate(date.getDate() + 1);
-  currentDate.value = date.toISOString().split("T")[0];
-  await taskStore.fetchTasksByDate(currentDate.value);
+  const newDate = date.toISOString().split("T")[0];
+
+  currentDate.value = newDate;
+
+  router.push({
+    name: "Tasks",
+    params: { filter: "calendar" },
+    query: { date: newDate },
+  });
 };
 
 const handleToday = async (): Promise<void> => {
-  currentDate.value = new Date().toISOString().split("T")[0];
-  await taskStore.fetchTasksByDate(currentDate.value);
+  const today = new Date().toISOString().split("T")[0];
+  currentDate.value = today;
+
+  router.push({
+    name: "Tasks",
+    params: { filter: "calendar" },
+    query: { date: today },
+  });
 };
 
 const handleDateSelected = async (date: string): Promise<void> => {
   currentDate.value = date;
-  await taskStore.fetchTasksByDate(date);
+
+  router.push({
+    name: "Tasks",
+    params: { filter: "calendar" },
+    query: { date: date },
+  });
 };
 
 // Initialize store
 onMounted(async () => {
   await taskStore.initialize();
+
+  // ✅ اضافه کردن: sync activeItem با route
+  if (routeList.value) {
+    activeItem.value = `list-${routeList.value}`;
+  } else {
+    activeItem.value = routeFilter.value;
+  }
 });
 </script>
 

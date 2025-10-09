@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex justify-center gap-2 mb-4"
+    class="flex flex-wrap justify-center gap-2 mb-4 md:flex-nowrap"
     :class="{ 'flex-row-reverse': isRtl }"
   >
     <button

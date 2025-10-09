@@ -3,6 +3,7 @@ export const locales = {
   en: {
     menu: "Menu",
     search: "Search",
+    allTasks: "All Tasks",
     tasks: "TASKS",
     upcoming: "Upcoming",
     today: "Today",
@@ -67,6 +68,7 @@ export const locales = {
   },
   fa: {
     menu: "منو",
+    allTasks: "همه تسک ها",
     search: "جستجو",
     tasks: "وظایف",
     upcoming: "آینده",
