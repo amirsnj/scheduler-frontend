@@ -173,7 +173,7 @@
       </div>
       <ul class="space-y-0.5">
         <ListItemComponent
-          v-for="list in taskStore.taskLists"
+          v-for="list in taskLists"
           :key="list.id"
           :title="list.title"
           :count="taskStore.tasksByCategory(list.id).length"
@@ -213,7 +213,7 @@
       </div>
       <div class="flex flex-wrap gap-2">
         <TagComponent
-          v-for="tag in taskStore.tags"
+          v-for="tag in tags"
           :key="tag.id"
           :title="tag.title"
           :is-active="activeTag === tag.id"

@@ -1,4 +1,5 @@
-// Base interfaces
+// ============= BASE INTERFACES =============
+
 export interface Tag {
   id: number;
   title: string;
@@ -16,14 +17,14 @@ export interface SubTask {
   is_completed: boolean;
 }
 
-// 🔥 اصلاح SubTaskCreate - اضافه کردن id و is_completed
 export interface SubTaskCreate {
-  id?: number; // اختیاری برای زیرتسک‌های جدید
+  id?: number;
   title: string;
-  is_completed?: boolean; // اختیاری، پیش‌فرض false
+  is_completed?: boolean;
 }
 
-// Task interfaces
+// ============= TASK INTERFACES =============
+
 export interface Task {
   id: number;
   title: string;
@@ -38,7 +39,6 @@ export interface Task {
   updated_at: string;
 }
 
-// 🔥 اصلاح TaskCreate - اضافه کردن is_completed
 export interface TaskCreate {
   title: string;
   description?: string;
@@ -46,12 +46,55 @@ export interface TaskCreate {
   priority_level?: "L" | "M" | "H";
   scheduled_date?: string;
   dead_line?: string | null;
-  is_completed?: boolean; // اضافه شده
+  is_completed?: boolean;
   tags: number[];
-  subTasks: SubTaskCreate[]; // حالا شامل id و is_completed
+  subTasks: SubTaskCreate[];
 }
 
-// Locale interface for translations
+export interface TaskUpdate {
+  title?: string;
+  description?: string;
+  category?: number | null;
+  priority_level?: "L" | "M" | "H";
+  scheduled_date?: string;
+  dead_line?: string | null;
+  is_completed?: boolean;
+  tags?: number[];
+  subTasks?: SubTaskCreate[];
+}
+
+// ============= UTILITY INTERFACES =============
+
 export interface Locale {
   [key: string]: string;
 }
+
+export interface ApiResponse<T> {
+  data: T;
+  status: number;
+  statusText: string;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+// ============= CONSTANTS =============
+
+export const PriorityLevel = {
+  LOW: "L",
+  MEDIUM: "M",
+  HIGH: "H",
+} as const;
+
+export const TaskStatus = {
+  PENDING: "pending",
+  COMPLETED: "completed",
+  OVERDUE: "overdue",
+} as const;
+
+export type PriorityLevelType = typeof PriorityLevel[keyof typeof PriorityLevel];
+export type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus];

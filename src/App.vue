@@ -4,12 +4,12 @@
     <router-view />
 
     <!-- Global Notification Component -->
-    <notificationComponent />
+    <NotificationComponent />
   </div>
 </template>
 
 <script setup lang="ts">
-import notificationComponent from "./components/notification/notificationComponent.vue";
+import NotificationComponent from "./components/notification/notificationComponent.vue";
 </script>
 
 <style>

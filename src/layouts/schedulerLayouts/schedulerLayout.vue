@@ -12,8 +12,8 @@
           :locales="locales"
           :active-item="activeItem"
           :tasks="taskStore.tasks"
-          :task-lists="taskStore.taskLists"
-          :tags="taskStore.tags"
+          :task-lists="taskListStore.taskLists"
+          :tags="tagStore.tags"
           @item-selected="handleItemSelected"
           @language-changed="handleLanguageChange"
           @list-selected="handleListSelected"
@@ -45,8 +45,8 @@
           :locales="locales"
           :active-item="activeItem"
           :tasks="taskStore.tasks"
-          :task-lists="taskStore.taskLists"
-          :tags="taskStore.tags"
+          :task-lists="taskListStore.taskLists"
+          :tags="tagStore.tags"
           :is-mobile="true"
           :is-mobile-open="isMobileMenuOpen"
           @item-selected="handleItemSelected"
@@ -98,8 +98,8 @@
             :current-language="currentLanguage"
             :locales="locales"
             :selected-task="selectedTask"
-            :task-lists="taskStore.taskLists"
-            :tags="taskStore.tags"
+            :task-lists="taskListStore.taskLists"
+            :tags="tagStore.tags"
             :show-panel="!!selectedTask || showAddTaskPanel"
             :is-adding-task="showAddTaskPanel"
             @save-task="handleSaveTask"
@@ -117,8 +117,8 @@
             :current-language="currentLanguage"
             :locales="locales"
             :selected-task="selectedTask"
-            :task-lists="taskStore.taskLists"
-            :tags="taskStore.tags"
+            :task-lists="taskListStore.taskLists"
+            :tags="tagStore.tags"
             :show-panel="true"
             :is-adding-task="showAddTaskPanel"
             :is-mobile="true"
@@ -146,18 +146,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import SidebarComponent from "@/views/schedulerViews/SideBar.vue";
-// import RightPanel from "@/views/schedulerViews/RightPanel.vue";
 import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
 import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
 import { currentLanguage } from "@/main";
-import { useTaskStore } from "@/store/index";
+import { useTaskStore } from "@/store/taskStore";
+import { useTaskListStore } from "@/store/taskListStore";
+import { useTagStore } from "@/store/tagStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useRoute, useRouter } from "vue-router";
 
-// Pinia store
+// Pinia stores
 const taskStore = useTaskStore();
+const taskListStore = useTaskListStore();
+const tagStore = useTagStore();
 const notificationStore = useNotificationStore();
 
 const router = useRouter();
@@ -196,7 +199,7 @@ const deleteModalData = ref<{
 const filteredTasks = computed(() => {
   // Filter by list/category
   if (routeList.value) {
-    const targetList = taskStore.taskLists.find(
+    const targetList = taskListStore.taskLists.find(
       (taskList) => taskList.title === routeList.value,
     );
     if (targetList) {
@@ -384,7 +387,7 @@ const handleSaveTask = async (
           (subTask) => subTask.id !== undefined,
         ) as SubTask[],
         tags: taskData.tags
-          .map((tagId) => taskStore.tags.find((t) => t.id === tagId))
+          .map((tagId) => tagStore.tags.find((t) => t.id === tagId))
           .filter((tag): tag is Tag => !!tag),
         updated_at: new Date().toISOString(),
       });
@@ -426,7 +429,7 @@ const handleDeleteTask = async (): Promise<void> => {
 // New methods for list and tag management
 const handleAddNewList = async (list: TaskList): Promise<void> => {
   try {
-    await taskStore.addTaskList({ title: list.title });
+      await taskListStore.addTaskList({ title: list.title });
     notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
   } catch (error) {
     console.log("error adding new list:", error);
@@ -438,7 +441,7 @@ const handleAddNewList = async (list: TaskList): Promise<void> => {
 
 const handleAddNewTag = async (tag: Tag): Promise<void> => {
   try {
-    await taskStore.addTag({ title: tag.title });
+      await tagStore.addTag({ title: tag.title });
     notificationStore.showSuccess(locales[currentLanguage.value].tagCreated);
   } catch (error) {
     console.error("Error adding tag:", error);
@@ -453,7 +456,7 @@ const handleEditList = async (
   newTitle: string,
 ): Promise<void> => {
   try {
-    await taskStore.updateTaskList(listId, { title: newTitle });
+      await taskListStore.updateTaskList(listId, { title: newTitle });
     notificationStore.showSuccess(locales[currentLanguage.value].listUpdated);
   } catch (error) {
     console.error("Error editing list:", error);
@@ -464,7 +467,7 @@ const handleEditList = async (
 };
 
 const handleDeleteList = (listId: number): void => {
-  const list = taskStore.taskLists.find((l) => l.id === listId);
+  const list = taskListStore.taskLists.find((l) => l.id === listId);
   if (list) {
     deleteModalData.value = {
       title: locales[currentLanguage.value].deleteList,
@@ -481,7 +484,7 @@ const handleEditTag = async (
   newTitle: string,
 ): Promise<void> => {
   try {
-    await taskStore.updateTag(tagId, { title: newTitle });
+      await tagStore.updateTag(tagId, { title: newTitle });
     notificationStore.showSuccess(
       locales[currentLanguage.value].tagUpdated || "Tag updated successfully",
     );
@@ -494,7 +497,7 @@ const handleEditTag = async (
 };
 
 const handleDeleteTag = (tagId: number): void => {
-  const tag = taskStore.tags.find((t) => t.id === tagId);
+  const tag = tagStore.tags.find((t) => t.id === tagId);
   if (tag) {
     deleteModalData.value = {
       title: locales[currentLanguage.value].deleteTag || "Delete Tag",
@@ -509,13 +512,13 @@ const handleDeleteTag = (tagId: number): void => {
 const handleConfirmDelete = async (): Promise<void> => {
   try {
     if (deleteModalData.value.type === "list") {
-      await taskStore.deleteTaskList(deleteModalData.value.id);
+      await taskListStore.deleteTaskList(deleteModalData.value.id);
       notificationStore.showSuccess(
         locales[currentLanguage.value].listDeleted ||
           "List deleted successfully",
       );
     } else {
-      await taskStore.deleteTag(deleteModalData.value.id);
+      await tagStore.deleteTag(deleteModalData.value.id);
       notificationStore.showSuccess(
         locales[currentLanguage.value].tagDeleted || "Tag deleted successfully",
       );
@@ -618,7 +621,11 @@ const handleDateSelected = async (date: string): Promise<void> => {
 
 // Initialize store
 onMounted(async () => {
-  await taskStore.initialize();
+  await Promise.all([
+    taskStore.fetchTasks(),
+    taskListStore.fetchTaskLists(),
+    tagStore.fetchTags(),
+  ]);
 
   // ✅ اضافه کردن: sync activeItem با route
   if (routeList.value) {

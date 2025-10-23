@@ -243,10 +243,8 @@ export const bulkDeleteTasks = async (
   return Promise.all(promises);
 };
 
-// Export the configured axios instance for custom requests
-export { apiClient };
+// ============= TASK UPDATE SERVICES =============
 
-//clude
 export const updateTask = async (taskId: number, taskData: any) => {
   const response = await apiClient.put(
     `/api/schedule/tasks/${taskId}/update/`,
@@ -267,3 +265,6 @@ export const toggleTaskComplete = async (
   );
   return response;
 };
+
+// Export the configured axios instance for custom requests
+export { apiClient };

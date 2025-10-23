@@ -1,7 +1,7 @@
 import LoginView from "@/views/authViews/LoginView.vue";
 import RegisterView from "@/views/authViews/RegisterView.vue";
 import SchedulerLayout from "@/layouts/schedulerLayouts/schedulerLayout.vue";
-import MainContent from "@/views/schedulerViews/MainContent.vue";
+import MainContent from "@/components/schedulerComponents/MainContent.vue";
 import {
   createRouter,
   createWebHistory,

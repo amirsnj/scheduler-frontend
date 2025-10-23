@@ -1,42 +1,21 @@
-// Re-export all stores for backward compatibility
-export { useTaskStore } from "./taskStore";
-export { useTaskListStore } from "./taskListStore";
-export { useTagStore } from "./tagStore";
-export { useMainStore } from "./mainStore";
-export { useNotificationStore } from "./notificationStore";
-
-// Legacy store for backward compatibility - will be removed in future versions
-import { defineStore, createPinia, setActivePinia } from "pinia";
-import { ref, computed, readonly } from "vue";
-import type { Tag, TaskList, SubTask, Task, TaskCreate } from "@/types";
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import type { Task, TaskCreate, SubTask } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
 import {
-  createTag,
   createTask,
-  createTaskCategory,
   deleteTask,
-  getTags,
-  getTaskCategories,
   getTasks,
   updateTask as updateTaskAPI,
   toggleTaskComplete as toggleTaskAPI,
   getTasksByDate,
-  updateTaskCategory,
-  deleteTaskCategory,
-  updateTagService,
-  deleteTagService,
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
-import type { AxiosResponse } from "axios";
 
-setActivePinia(createPinia());
-
-export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
+export const useTaskStore = defineStore("task", () => {
   // State
   const tasks = ref<Task[]>([]);
-  const taskLists = ref<TaskList[]>([]);
-  const tags = ref<Tag[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
   const tasksByDate = ref<Map<string, Task[]>>(new Map());
@@ -173,7 +152,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     error.value = null;
     try {
       const response = await getTasksByDate(date);
-      // const response = await getTasks({ scheduled_date: date });
       const fetchedTasks = Array.isArray(response.data)
         ? response.data
         : response.data.tasks || [];
@@ -214,7 +192,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       if (taskData.dead_line && tasksByDate.value.has(taskData.dead_line)) {
         tasksByDate.value.get(taskData.dead_line)!.push(response.data);
       }
-      updateTaskListCount(taskData.category);
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorCreatingTask ||
@@ -253,7 +230,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
-      const oldCategory = tasks.value[taskIndex].category;
       const oldScheduledDate = tasks.value[taskIndex].scheduled_date;
       const oldDeadline = tasks.value[taskIndex].dead_line;
 
@@ -287,11 +263,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       if (updates.dead_line && tasksByDate.value.has(updates.dead_line)) {
         tasksByDate.value.get(updates.dead_line)!.push(response.data);
       }
-
-      if (oldCategory !== updates.category) {
-        updateTaskListCount(oldCategory);
-        updateTaskListCount(updates.category);
-      }
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorUpdatingTask ||
@@ -311,7 +282,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
-      const categoryId = tasks.value[taskIndex].category;
       const scheduledDate = tasks.value[taskIndex].scheduled_date;
       const deadline = tasks.value[taskIndex].dead_line;
 
@@ -331,8 +301,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
           tasksByDate.value.get(deadline)!.filter((task) => task.id !== taskId),
         );
       }
-
-      updateTaskListCount(categoryId);
     } catch (err) {
       error.value =
         locales[currentLanguage.value].errorDeletingTask ||
@@ -422,220 +390,6 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     }
   };
 
-  // TaskList Actions
-  const fetchTaskLists = async (): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await getTaskCategories();
-      taskLists.value = response.data;
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorFetchingLists ||
-        "Error fetching task lists";
-      console.error("Error fetching task lists:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const addTaskList = async (
-    listData: Omit<TaskList, "id" | "task_count">,
-  ): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await createTaskCategory(listData);
-      taskLists.value.push(response.data);
-    } catch (err) {
-      const notificationStore = useNotificationStore();
-      if ((err as any).status == 400) {
-        notificationStore.showError(
-          locales[currentLanguage.value].TheListIsAlreadyExists,
-        );
-      } else {
-        notificationStore.showError(
-          locales[currentLanguage.value].errorCreatingList,
-        );
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const updateTaskList = async (
-    listId: number,
-    updates: Omit<TaskList, "id">,
-  ): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await updateTaskCategory(listId, updates);
-
-      const listIndex = taskLists.value.findIndex((list) => list.id === listId);
-      if (listIndex === -1) throw new Error("List not found");
-      taskLists.value[listIndex] = {
-        ...response.data,
-      };
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorUpdatingList ||
-        "Error updating task list";
-      console.error("Error updating task list:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const deleteTaskList = async (listId: number): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      await deleteTaskCategory(listId);
-
-      taskLists.value = taskLists.value.filter((list) => list.id !== listId);
-
-      tasks.value = tasks.value.map((task) =>
-        task.category === listId ? { ...task, category: null } : task,
-      );
-
-      tasksByDate.value.forEach((tasks, date) => {
-        tasksByDate.value.set(
-          date,
-          tasks.map((task) =>
-            task.category === listId ? { ...task, category: null } : task,
-          ),
-        );
-      });
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorDeletingList ||
-        "Error deleting task list";
-      console.error("Error deleting task list:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const updateTaskListCount = (categoryId: number | null | undefined): void => {
-    if (categoryId) {
-      const list = taskLists.value.find((l) => l.id === categoryId);
-      if (list) {
-        const today = new Date().toISOString().split("T")[0];
-        list.task_count = tasks.value.filter(
-          (t) =>
-            t.category === categoryId &&
-            (t.scheduled_date === today || t.dead_line === today),
-        ).length;
-      }
-    }
-  };
-
-  // Tag Actions
-  const fetchTags = async (): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await getTags();
-      tags.value = response.data;
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorFetchingTags ||
-        "Error fetching tags";
-      console.error("Error fetching tags:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const addTag = async (tagData: Omit<Tag, "id">): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response = await createTag(tagData);
-      tags.value.push(response.data);
-    } catch (err) {
-      const notificationStore = useNotificationStore();
-      if ((err as any).status == 400) {
-        notificationStore.showError(
-          locales[currentLanguage.value].TheTagIsAlreadyExists,
-        );
-      } else {
-        notificationStore.showError(
-          locales[currentLanguage.value].errorCreatingTag,
-        );
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const updateTag = async (
-    tagId: number,
-    updates: Omit<Tag, "id">,
-  ): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      const response: AxiosResponse<Tag> = await updateTagService(
-        tagId,
-        updates,
-      );
-      const tagIndex = tags.value.findIndex((tag) => tag.id === tagId);
-      if (tagIndex === -1) throw new Error("Tag not found");
-      tags.value[tagIndex] = response.data;
-
-      tasks.value = tasks.value.map((task) => {
-        if (task.tags.some((tag) => tag.id === tagId)) {
-          return {
-            ...task,
-            tags: task.tags.map((tag) =>
-              tag.id === tagId ? response.data : tag,
-            ),
-          };
-        }
-        return task;
-      });
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorUpdatingTag || "Error updating tag";
-      console.error("Error updating tag:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const deleteTag = async (tagId: number): Promise<void> => {
-    loading.value = true;
-    error.value = null;
-    try {
-      await deleteTagService(tagId);
-
-      tags.value = tags.value.filter((tag) => tag.id !== tagId);
-
-      tasks.value = tasks.value.map((task) => ({
-        ...task,
-        tags: task.tags.filter((tag) => tag.id !== tagId),
-      }));
-
-      tasksByDate.value.forEach((tasks, date) => {
-        tasksByDate.value.set(
-          date,
-          tasks.map((task) => ({
-            ...task,
-            tags: task.tags.filter((tag) => tag.id !== tagId),
-          })),
-        );
-      });
-    } catch (err) {
-      error.value =
-        locales[currentLanguage.value].errorDeletingTag || "Error deleting tag";
-      console.error("Error deleting tag:", err);
-    } finally {
-      loading.value = false;
-    }
-  };
-
   // Utility Actions
   const clearError = (): void => {
     error.value = null;
@@ -657,27 +411,12 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     return tasks.value.find((task) => task.id === taskId);
   };
 
-  const getTagById = (tagId: number): Tag | undefined => {
-    return tags.value.find((tag) => tag.id === tagId);
-  };
-
-  const getTaskListById = (listId: number): TaskList | undefined => {
-    return taskLists.value.find((list) => list.id === listId);
-  };
-
-  // Initialize store
-  const initialize = async (): Promise<void> => {
-    await Promise.all([fetchTasks(), fetchTaskLists(), fetchTags()]);
-  };
-
   return {
     // State
-    tasks: tasks,
-    taskLists: taskLists,
-    tags: tags,
-    loading: readonly(loading),
-    error: readonly(error),
-    tasksByDate: readonly(tasksByDate),
+    tasks,
+    loading,
+    error,
+    tasksByDate,
 
     // Getters
     completedTasks,
@@ -705,24 +444,9 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     deleteSubTask,
     toggleSubTaskComplete,
 
-    // TaskList Actions
-    fetchTaskLists,
-    addTaskList,
-    updateTaskList,
-    deleteTaskList,
-
-    // Tag Actions
-    fetchTags,
-    addTag,
-    updateTag,
-    deleteTag,
-
     // Utility Actions
     clearError,
     searchTasks,
     getTaskById,
-    getTagById,
-    getTaskListById,
-    initialize,
   };
 });
