@@ -1,12 +1,14 @@
 import LoginView from "@/views/authViews/LoginView.vue";
 import RegisterView from "@/views/authViews/RegisterView.vue";
 import SchedulerLayout from "@/layouts/schedulerLayouts/schedulerLayout.vue";
-import MainContent from "@/components/schedulerComponents/MainContent.vue";
+// import MainContent from "@/components/schedulerComponents/MainContent.vue";
+import MainContentView from "@/views/schedulerViews/mainContentView.vue";
 import {
   createRouter,
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
+import SettingView from "@/views/settingViews/settingView.vue";
 
 // const schedulerLayout = () =>
 //   import("@/layouts/schedulerLayouts/schedulerLayout.vue");
@@ -68,13 +70,18 @@ const routes: RouteRecordRaw[] = [
       {
         path: "tasks/:filter?",
         name: "Tasks",
-        component: MainContent,
+        component: MainContentView,
         props: (route) => ({
           filter: route.params.filter as string | undefined,
           date: route.query.date as string | undefined,
           list: route.query.list as string | undefined,
         }),
       },
+      {
+        path: "setting",
+        name: "Setting",
+        component: SettingView
+      }
     ],
   },
 ];

@@ -98,3 +98,13 @@ export const TaskStatus = {
 
 export type PriorityLevelType = typeof PriorityLevel[keyof typeof PriorityLevel];
 export type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus];
+
+// ============= User Info =============
+
+export interface IUserInfo {
+  id: number;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string
+}

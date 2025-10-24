@@ -7,7 +7,7 @@
     <div class="flex h-screen">
       <!-- Sidebar Component -->
       <div class="hidden lg:block">
-        <SidebarComponent
+        <SideBarView
           :current-language="currentLanguage"
           :locales="locales"
           :active-item="activeItem"
@@ -40,7 +40,7 @@
         class="lg:hidden fixed z-50 h-full transition-transform duration-300 ease-in-out"
         :class="['sidebar-mobile', isMobileMenuOpen ? 'open' : '']"
       >
-        <SidebarComponent
+        <SideBarView
           :current-language="currentLanguage"
           :locales="locales"
           :active-item="activeItem"
@@ -72,22 +72,8 @@
           <router-view v-slot="{ Component }">
             <component
               :is="Component"
-              :current-language="currentLanguage"
-              :locales="locales"
-              :active-item="activeItem"
-              :tasks="filteredTasks"
-              :selected-task="selectedTask"
-              :is-loading="taskStore.loading"
-              :current-date="currentDate"
-              v-model:selectedDate="currentDate"
-              @task-selected="handleTaskSelected"
-              @toggle-mobile-menu="toggleMobileMenu"
-              @add-task="handleAddTask"
-              @toggle-task-completion="handleToggleTaskCompletion"
-              @previous-day="handlePreviousDay"
-              @next-day="handleNextDay"
-              @today="handleToday"
-              @update:selectedDate="handleDateSelected"
+              v-bind="getComponentProps(route.name)"
+              v-on="getComponentEvents(route.name)"
             />
           </router-view>
         </div>
@@ -145,8 +131,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import SidebarComponent from "@/views/schedulerViews/SideBar.vue";
-import RightPanel from "@/components/schedulerComponents/RightPanel.vue";
+import SideBarView from "@/views/schedulerViews/sideBarView.vue";
+import RightPanel from "@/views/schedulerViews/rightPanelView.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
 import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
@@ -268,7 +254,9 @@ watch(routeFilter, (newFilter) => {
 
 // Methods
 const handleLanguageChange = (): void => {
-  currentLanguage.value = currentLanguage.value === "en" ? "fa" : "en";
+  const currentLang = currentLanguage.value === "en" ? "fa" : "en";
+  currentLanguage.value = currentLang;
+  localStorage.setItem("lang", currentLang);
 };
 
 // const handleItemSelected = (item: string): void => {
@@ -429,7 +417,7 @@ const handleDeleteTask = async (): Promise<void> => {
 // New methods for list and tag management
 const handleAddNewList = async (list: TaskList): Promise<void> => {
   try {
-      await taskListStore.addTaskList({ title: list.title });
+    await taskListStore.addTaskList({ title: list.title });
     notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
   } catch (error) {
     console.log("error adding new list:", error);
@@ -441,7 +429,7 @@ const handleAddNewList = async (list: TaskList): Promise<void> => {
 
 const handleAddNewTag = async (tag: Tag): Promise<void> => {
   try {
-      await tagStore.addTag({ title: tag.title });
+    await tagStore.addTag({ title: tag.title });
     notificationStore.showSuccess(locales[currentLanguage.value].tagCreated);
   } catch (error) {
     console.error("Error adding tag:", error);
@@ -456,7 +444,7 @@ const handleEditList = async (
   newTitle: string,
 ): Promise<void> => {
   try {
-      await taskListStore.updateTaskList(listId, { title: newTitle });
+    await taskListStore.updateTaskList(listId, { title: newTitle });
     notificationStore.showSuccess(locales[currentLanguage.value].listUpdated);
   } catch (error) {
     console.error("Error editing list:", error);
@@ -484,7 +472,7 @@ const handleEditTag = async (
   newTitle: string,
 ): Promise<void> => {
   try {
-      await tagStore.updateTag(tagId, { title: newTitle });
+    await tagStore.updateTag(tagId, { title: newTitle });
     notificationStore.showSuccess(
       locales[currentLanguage.value].tagUpdated || "Tag updated successfully",
     );
@@ -542,8 +530,12 @@ const handleCancelDelete = (): void => {
 };
 
 const handleSettingsClicked = (): void => {
-  // Navigate to settings or open settings modal
-  console.log("Settings clicked");
+  showAddTaskPanel.value = false;
+  selectedTask.value = null;
+  router.push({
+    name: "Setting",
+    params: {},
+  });
 };
 
 const handleSignOut = (): void => {
@@ -617,6 +609,57 @@ const handleDateSelected = async (date: string): Promise<void> => {
     params: { filter: "calendar" },
     query: { date: date },
   });
+};
+
+// Dynamic props and events based on route component
+const getComponentProps = (routeName: string | symbol | null | undefined) => {
+  const name = typeof routeName === "string" ? routeName : "";
+
+  switch (name) {
+    case "Tasks":
+      return {
+        currentLanguage: currentLanguage.value,
+        locales,
+        activeItem: activeItem.value,
+        tasks: filteredTasks.value,
+        selectedTask: selectedTask.value,
+        isLoading: taskStore.loading,
+        currentDate: currentDate.value,
+        "onUpdate:selectedDate": handleDateSelected,
+      };
+    case "Setting":
+      return {
+        currentLanguage: currentLanguage.value,
+        locales,
+      };
+    default:
+      return {};
+  }
+};
+
+const getComponentEvents = (routeName: string | symbol | null | undefined) => {
+  const name = typeof routeName === "string" ? routeName : "";
+
+  switch (name) {
+    case "Tasks":
+      return {
+        "task-selected": handleTaskSelected,
+        "toggle-mobile-menu": toggleMobileMenu,
+        "add-task": handleAddTask,
+        "toggle-task-completion": handleToggleTaskCompletion,
+        "previous-day": handlePreviousDay,
+        "next-day": handleNextDay,
+        today: handleToday,
+        "update:selectedDate": handleDateSelected,
+      };
+    case "Setting":
+      return {
+        "toggle-mobile-menu": toggleMobileMenu,
+        "language-changed": handleLanguageChange,
+      };
+    default:
+      return {};
+  }
 };
 
 // Initialize store

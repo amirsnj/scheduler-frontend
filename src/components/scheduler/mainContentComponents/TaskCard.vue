@@ -71,6 +71,7 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            class="mb-1"
           >
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
@@ -89,6 +90,7 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            class="mb-[3px]"
           >
             <circle cx="12" cy="12" r="10" />
             <polyline points="12,6 12,12 16,14" />
@@ -107,6 +109,7 @@
             fill="none"
             stroke="currentColor"
             stroke-width="2"
+            class="mb-1"
           >
             <polyline points="9,11 12,14 22,4" />
             <path

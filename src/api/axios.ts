@@ -43,10 +43,15 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
+    // Skip token refresh for auth endpoints (login, register)
+    const isAuthEndpoint = originalRequest.url?.includes("/api/auth/jwt/create/") || 
+                          originalRequest.url?.includes("/api/auth/users/");
+
     if (
       error.response &&
       error.response.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !isAuthEndpoint
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

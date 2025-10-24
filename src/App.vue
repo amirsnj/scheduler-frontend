@@ -9,7 +9,17 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeMount } from "vue";
 import NotificationComponent from "./components/notification/notificationComponent.vue";
+import { currentLanguage } from "./main";
+
+onBeforeMount(() => {
+  let lang = localStorage.getItem("lang");
+  if (!lang) {
+    localStorage.setItem("lang", "en");
+  }
+  currentLanguage.value = localStorage.getItem("lang");
+});
 </script>
 
 <style>
@@ -20,9 +30,7 @@ import NotificationComponent from "./components/notification/notificationCompone
 
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--font-family-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

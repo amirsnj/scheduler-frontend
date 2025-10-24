@@ -32,7 +32,7 @@
 import { computed } from "vue";
 
 // Props
-const props = defineProps<{
+defineProps<{
   modelValue: string;
   label: string;
   type?: string;
@@ -40,8 +40,6 @@ const props = defineProps<{
   required?: boolean;
   rows?: number;
 }>();
-
-const { modelValue, label, type, placeholder, required, rows } = props;
 
 // Emits
 defineEmits<{
