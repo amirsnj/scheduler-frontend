@@ -1,7 +1,7 @@
 <template>
   <div
     :dir="currentLanguage === 'fa' ? 'rtl' : 'ltr'"
-    class="min-h-screen bg-gray-50"
+    class="min-h-screen bg-white lg:bg-gray-50"
   >
     <!-- Main Layout -->
     <div class="flex h-screen">

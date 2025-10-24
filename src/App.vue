@@ -17,8 +17,9 @@ onBeforeMount(() => {
   let lang = localStorage.getItem("lang");
   if (!lang) {
     localStorage.setItem("lang", "en");
+    lang = "en";
   }
-  currentLanguage.value = localStorage.getItem("lang");
+  currentLanguage.value = lang as "en" | "fa";
 });
 </script>
 
