@@ -6,7 +6,7 @@ import axios, {
 import router from "@/router";
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: "https://scheduler-backend-production-2ba5.up.railway.app",
+  baseURL: "https://scheduler-backend-production-cc31.up.railway.app",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
