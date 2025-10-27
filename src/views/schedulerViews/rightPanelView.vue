@@ -1,10 +1,10 @@
 <template>
   <div
     v-if="showPanel"
-    class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col"
+    class="h-full bg-white rounded-xl p-6 shadow-lg flex flex-col overflow-hidden"
     :class="{ 'rounded-none': isMobile }"
   >
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 flex-shrink-0">
       <h2 class="text-lg font-semibold text-gray-900">
         {{
           isAddingTask
@@ -31,7 +31,7 @@
       </button>
     </div>
 
-    <div class="flex-1 space-y-6 overflow-y-auto scrollbar-hide">
+    <div class="flex-1 space-y-6 overflow-y-auto scrollbar-hide min-h-0">
       <!-- Task Title -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -254,7 +254,7 @@
     </div>
 
     <!-- Footer Actions -->
-    <div class="border-t border-gray-200 pt-4 mt-6">
+    <div class="border-t border-gray-200 pt-4 mt-6 flex-shrink-0">
       <div class="flex gap-3">
         <button
           v-if="!isAddingTask"

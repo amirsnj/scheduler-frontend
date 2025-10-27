@@ -1,35 +1,42 @@
 <template>
-  <div class="lg:h-full bg-white rounded-xl p-6 lg:shadow-lg flex flex-col">
+  <div
+    class="h-full bg-white rounded-xl p-6 lg:shadow-lg flex flex-col overflow-hidden"
+  >
     <!-- Header -->
-    <PageHeader
-      :title="getActiveItemTitle()"
-      :task-count="tasks.length"
-      :add-task-text="locales[currentLanguage].addNewTask"
-      @toggle-mobile-menu="$emit('toggle-mobile-menu')"
-      @add-task="$emit('add-task')"
-    />
+    <div class="flex-shrink-0">
+      <PageHeader
+        :title="getActiveItemTitle()"
+        :task-count="tasks.length"
+        :add-task-text="locales[currentLanguage].addNewTask"
+        @toggle-mobile-menu="$emit('toggle-mobile-menu')"
+        @add-task="$emit('add-task')"
+      />
+    </div>
 
     <!-- Calendar Navigation Buttons -->
-    <CalendarNavigation
-      v-if="activeItem === 'calendar'"
-      :selected-date="selectedDate"
-      :is-rtl="currentLanguage === 'fa'"
-      :previous-day-text="
-        locales[currentLanguage].previousDay || 'Previous Day'
-      "
-      :today-text="locales[currentLanguage].today || 'Today'"
-      :next-day-text="locales[currentLanguage].nextDay || 'Next Day'"
-      @previous-day="$emit('previous-day')"
-      @today="$emit('today')"
-      @next-day="$emit('next-day')"
-      @update:selectedDate="handleDateUpdate"
-    />
+    <div v-if="activeItem === 'calendar'" class="flex-shrink-0">
+      <CalendarNavigation
+        :selected-date="selectedDate"
+        :is-rtl="currentLanguage === 'fa'"
+        :previous-day-text="
+          locales[currentLanguage].previousDay || 'Previous Day'
+        "
+        :today-text="locales[currentLanguage].today || 'Today'"
+        :next-day-text="locales[currentLanguage].nextDay || 'Next Day'"
+        @previous-day="$emit('previous-day')"
+        @today="$emit('today')"
+        @next-day="$emit('next-day')"
+        @update:selectedDate="handleDateUpdate"
+      />
+    </div>
 
     <!-- Loading Animation -->
-    <LoadingSpinner v-if="isLoading" />
+    <div v-if="isLoading" class="flex-1 flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
 
     <!-- Task List -->
-    <div v-else class="flex-1 space-y-3 overflow-y-auto scrollbar-hide">
+    <div v-else class="flex-1 space-y-3 overflow-y-auto scrollbar-hide min-h-0">
       <TaskCard
         v-for="task in tasks"
         :key="task.id"

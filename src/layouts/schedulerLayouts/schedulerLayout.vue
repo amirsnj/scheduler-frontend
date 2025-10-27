@@ -1,10 +1,10 @@
 <template>
   <div
     :dir="currentLanguage === 'fa' ? 'rtl' : 'ltr'"
-    class="min-h-screen bg-white lg:bg-gray-50"
+    class="h-screen bg-white lg:bg-gray-50 overflow-hidden flex flex-col"
   >
     <!-- Main Layout -->
-    <div class="flex h-screen">
+    <div class="flex flex-1 overflow-hidden min-h-0">
       <!-- Sidebar Component -->
       <div class="hidden lg:block">
         <SideBarView
@@ -66,9 +66,11 @@
       </div>
 
       <!-- Main Content Area -->
-      <div class="flex-1 flex">
+      <div class="flex-1 flex min-h-0 overflow-hidden">
         <!-- Task List Section -->
-        <div class="flex-1 lg:flex-none lg:w-96 xl:w-1/2">
+        <div
+          class="flex-1 lg:flex-none lg:w-96 xl:w-1/2 h-full overflow-hidden"
+        >
           <router-view v-slot="{ Component }">
             <component
               :is="Component"
@@ -79,7 +81,7 @@
         </div>
 
         <!-- Right Panel -->
-        <div class="hidden lg:block flex-1">
+        <div class="hidden lg:block flex-1 h-full overflow-hidden">
           <RightPanel
             :current-language="currentLanguage"
             :locales="locales"
