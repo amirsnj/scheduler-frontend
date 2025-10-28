@@ -31,7 +31,10 @@
       </button>
     </div>
 
-    <div class="flex-1 space-y-6 overflow-y-auto scrollbar-hide min-h-0">
+    <div
+      class="flex-1 space-y-6 overflow-y-auto scrollbar-hide min-h-0"
+      ref="scrollContainer"
+    >
       <!-- Task Title -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -281,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, nextTick } from "vue";
 import type {
   Task,
   TaskCreate,
@@ -320,6 +323,7 @@ const taskDeadline = ref<string>("");
 const taskTags = ref<Tag[]>([]);
 const taskSubtasks = ref<SubTask[]>([]);
 const taskCompleted = ref<boolean>(false);
+const scrollContainer = ref<HTMLElement | null>(null);
 
 // Computed
 const availableTags = computed(() => {
@@ -381,14 +385,22 @@ const removeTag = (tagId: number): void => {
   taskTags.value = taskTags.value.filter((tag) => tag.id !== tagId);
 };
 
-// 🔥 اصلاح addSubtask - تولید ID منحصر به فرد
-const addSubtask = (): void => {
+const addSubtask = async (): Promise<void> => {
   const newSubtask: SubTask = {
-    id: Date.now() + Math.random(), // ID منحصر به فرد
+    id: Date.now() + Math.random(),
     title: "",
     is_completed: false,
   };
   taskSubtasks.value.push(newSubtask);
+
+  // Scroll to bottom of the main container after DOM update
+  await nextTick();
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTo({
+      top: scrollContainer.value.scrollHeight,
+      behavior: "smooth",
+    });
+  }
 };
 
 const removeSubtask = (index: number): void => {

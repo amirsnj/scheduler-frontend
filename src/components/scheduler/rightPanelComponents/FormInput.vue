@@ -13,6 +13,7 @@
       :class="inputClasses"
       :placeholder="placeholder"
       :required="required"
+      :disabled="disable"
     />
     <textarea
       v-else
@@ -24,6 +25,7 @@
       :class="[inputClasses, 'resize-none']"
       :placeholder="placeholder"
       :required="required"
+      :disabled="disable"
     ></textarea>
   </div>
 </template>
@@ -32,12 +34,13 @@
 import { computed } from "vue";
 
 // Props
-defineProps<{
+const props = defineProps<{
   modelValue: string;
   label: string;
   type?: string;
   placeholder?: string;
   required?: boolean;
+  disable?: boolean;
   rows?: number;
 }>();
 
@@ -47,8 +50,13 @@ defineEmits<{
 }>();
 
 // Computed
-const inputClasses = computed(
-  () =>
-    "w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-);
+const inputClasses = computed(() => {
+  const baseClasses = "w-full px-3 py-2 border rounded-lg transition-colors";
+
+  if (props.disable) {
+    return `${baseClasses} border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed`;
+  }
+
+  return `${baseClasses} border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`;
+});
 </script>

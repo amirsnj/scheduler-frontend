@@ -60,14 +60,14 @@
         <ul class="space-y-0.5">
           <TaskListItem
             :title="locales[currentLanguage].allTasks"
-            :count="0"
+            :count="taskStore.todayTasks.length"
             :is-active="activeItem === 'all'"
             :show-count="true"
             @click="setActive('all')"
           >
             <template #icon>
               <svg
-                class="mr-3 flex-shrink-0"
+                class="flex-shrink-0"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -85,14 +85,14 @@
 
           <TaskListItem
             :title="locales[currentLanguage].upcoming"
-            :count="0"
+            :count="taskStore.upcomingTasks.length"
             :is-active="activeItem === 'upcoming'"
             :show-count="true"
             @click="setActive('upcoming')"
           >
             <template #icon>
               <svg
-                class="mr-2.5 flex-shrink-0 fill-gray-500"
+                class="flex-shrink-0 fill-gray-500"
                 stroke="currentColor"
                 stroke-width="2"
                 height="18"
@@ -108,14 +108,14 @@
 
           <TaskListItem
             :title="locales[currentLanguage].completed"
-            :count="0"
+            :count="taskStore.completedTasks.length"
             :is-active="activeItem === 'completed'"
             :show-count="true"
             @click="setActive('completed')"
           >
             <template #icon>
               <svg
-                class="mr-3 flex-shrink-0"
+                class="flex-shrink-0"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -136,7 +136,7 @@
           >
             <template #icon>
               <svg
-                class="mr-3 flex-shrink-0"
+                class="flex-shrink-0"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"

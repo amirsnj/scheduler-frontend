@@ -31,3 +31,8 @@ export const getCurrentUserData = async (): Promise<AxiosResponse<IUserInfo>> =>
   const response = await apiClient.get("/api/auth/users/me/");
   return response
 }
+
+export const editUserInfo = async (data: IUserInfo): Promise<AxiosResponse> => {
+  const response = await apiClient.put("/api/auth/users/me/", data);
+  return response
+}

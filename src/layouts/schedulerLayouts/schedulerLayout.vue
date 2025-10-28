@@ -538,6 +538,9 @@ const handleSettingsClicked = (): void => {
     name: "Setting",
     params: {},
   });
+  if (isMobileMenuOpen.value) {
+    closeMobileMenu();
+  }
 };
 
 const handleSignOut = (): void => {
