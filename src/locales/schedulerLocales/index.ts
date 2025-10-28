@@ -113,7 +113,7 @@ export const locales = {
   },
   fa: {
     menu: "منو",
-    allTasks: "همه تسک ها",
+    allTasks: "تسک ها",
     search: "جستجو",
     tasks: "وظایف",
     upcoming: "آینده",
