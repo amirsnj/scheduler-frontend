@@ -48,48 +48,90 @@
       </h2>
 
       <form @submit.prevent="handleEditProfile" class="space-y-4">
-        <FormInput
-          v-model="userInfoForm.username"
-          :label="locales[currentLanguage].username"
-          type="text"
-          placeholder="Enter your username"
-          :required="true"
-          :disable="true"
-        />
+        <div class="flex gap-4 lg:flex-row flex-col">
+          <FormInput
+            v-model="userInfoForm.username"
+            :label="locales[currentLanguage].username"
+            type="text"
+            :required="true"
+            :disable="true"
+          />
+          <FormInput
+            v-model="userInfoForm.email"
+            :label="locales[currentLanguage].email"
+            type="email"
+            :required="true"
+            :disable="true"
+          />
+        </div>
 
-        <FormInput
-          v-model="userInfoForm.email"
-          :label="locales[currentLanguage].email"
-          type="email"
-          placeholder="Enter your email"
-          :required="true"
-          :disable="true"
-        />
-
-        <FormInput
-          :model-value="userInfoForm.first_name || ''"
-          @update:model-value="(value) => (userInfoForm.first_name = value)"
-          :label="locales[currentLanguage].firstName"
-          type="text"
-          placeholder="Enter your first name"
-          :required="true"
-        />
-
-        <FormInput
-          :model-value="userInfoForm.last_name || ''"
-          @update:model-value="(value) => (userInfoForm.last_name = value)"
-          :label="locales[currentLanguage].lastName"
-          type="text"
-          placeholder="Enter your last name"
-          :required="true"
-        />
+        <div class="flex gap-4 lg:flex-row flex-col">
+          <FormInput
+            :model-value="userInfoForm.first_name || ''"
+            @update:model-value="(value) => (userInfoForm.first_name = value)"
+            :label="locales[currentLanguage].firstName"
+            type="text"
+            :placeholder="locales[currentLanguage].enterFirstName"
+            :required="true"
+          />
+          <FormInput
+            :model-value="userInfoForm.last_name || ''"
+            @update:model-value="(value) => (userInfoForm.last_name = value)"
+            :label="locales[currentLanguage].lastName"
+            type="text"
+            :placeholder="locales[currentLanguage].enterLastName"
+            :required="true"
+          />
+        </div>
 
         <button
           type="submit"
-          class="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          class="w-full md:w-auto mt-1.5 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
         >
           {{ locales[currentLanguage].editProfile }}
         </button>
+      </form>
+    </div>
+    <!-- change password Form -->
+    <div class="mt-8 space-y-6">
+      <h2 class="text-xl font-semibold text-gray-900">
+        {{ locales[currentLanguage].changePassword }}
+      </h2>
+
+      <form @submit.prevent="handleChangePassword" class="space-y-4">
+        <div class="flex gap-4 lg:flex-row flex-col">
+          <FormInput
+            v-model="passwordForm.newPassword"
+            :label="locales[currentLanguage].newPassword"
+            type="password"
+            :placeholder="locales[currentLanguage].enterNewPassword"
+            :required="true"
+          />
+
+          <FormInput
+            v-model="passwordForm.repeatPassword"
+            :label="locales[currentLanguage].repeatPassword"
+            type="password"
+            :placeholder="locales[currentLanguage].enterRepeatPassword"
+            :required="true"
+          />
+        </div>
+
+        <div class="flex gap-4 lg:flex-row flex-col items-center">
+          <FormInput
+            v-model="passwordForm.currentPassword"
+            :label="locales[currentLanguage].currentPassword"
+            type="password"
+            :placeholder="locales[currentLanguage].enterCurrentPassword"
+            :required="true"
+          />
+          <button
+            type="submit"
+            class="w-full mt-6 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          >
+            {{ locales[currentLanguage].changePassword }}
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -99,7 +141,11 @@
 import type { Locale, IUserInfo } from "@/types";
 import { onMounted, reactive, computed } from "vue";
 import FormInput from "@/components/scheduler/rightPanelComponents/FormInput.vue";
-import { editUserInfo, getCurrentUserData } from "@/api/authService";
+import {
+  editUserInfo,
+  getCurrentUserData,
+  changePassword,
+} from "@/api/authService";
 import { useNotificationStore } from "@/store/notificationStore";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
@@ -110,6 +156,12 @@ const userInfoForm = reactive<IUserInfo>({
   email: "",
   first_name: "",
   last_name: "",
+});
+
+const passwordForm = reactive({
+  currentPassword: "",
+  newPassword: "",
+  repeatPassword: "",
 });
 
 defineProps<{
@@ -221,6 +273,104 @@ const handleEditProfile = async (): Promise<void> => {
       // Something else happened
       notificationStore.showError(
         error.message || locales[currentLang.value].errorUpdatingProfile,
+      );
+    }
+  }
+};
+
+const handleChangePassword = async (): Promise<void> => {
+  // Validate required fields
+  if (!passwordForm.currentPassword?.trim()) {
+    notificationStore.showError(
+      locales[currentLang.value].currentPasswordRequired,
+    );
+    return;
+  }
+
+  if (!passwordForm.newPassword?.trim()) {
+    notificationStore.showError(locales[currentLang.value].passwordRequired);
+    return;
+  }
+
+  if (passwordForm.newPassword !== passwordForm.repeatPassword) {
+    notificationStore.showError(locales[currentLang.value].passwordsDoNotMatch);
+    return;
+  }
+
+  try {
+    await changePassword({
+      new_password: passwordForm.newPassword,
+      current_password: passwordForm.currentPassword,
+    });
+
+    // Clear form
+    passwordForm.currentPassword = "";
+    passwordForm.newPassword = "";
+    passwordForm.repeatPassword = "";
+
+    // Show success notification
+    notificationStore.showSuccess(
+      locales[currentLang.value].passwordChangedSuccessfully,
+    );
+  } catch (error: any) {
+    // Handle different types of errors
+    if (error.response) {
+      // API Error - server responded with error status
+      const status = error.response.status;
+      const errorData = error.response.data;
+
+      if (status === 400) {
+        // Bad request - validation errors
+        if (errorData) {
+          // Check for specific field errors
+          const errorMessages = [];
+          if (errorData.current_password) {
+            errorMessages.push(errorData.current_password[0]);
+          }
+          if (errorData.new_password) {
+            errorMessages.push(errorData.new_password[0]);
+          }
+          if (errorData.re_new_password) {
+            errorMessages.push(errorData.re_new_password[0]);
+          }
+
+          if (errorMessages.length > 0) {
+            notificationStore.showError(errorMessages.join(" "));
+          } else {
+            // Show all validation errors
+            const allErrors = Object.values(errorData).flat().join(" ");
+            notificationStore.showError(allErrors);
+          }
+        } else {
+          notificationStore.showError(
+            locales[currentLang.value].errorChangingPassword,
+          );
+        }
+      } else if (status === 401) {
+        // Unauthorized
+        notificationStore.showError(
+          "Current password is incorrect. Please try again.",
+        );
+      } else if (status >= 500) {
+        // Server error
+        notificationStore.showError("Server error. Please try again later.");
+      } else {
+        // Other API errors
+        notificationStore.showError(
+          errorData?.detail ||
+            errorData?.message ||
+            locales[currentLang.value].errorChangingPassword,
+        );
+      }
+    } else if (error.request) {
+      // Network Error - request was made but no response received
+      notificationStore.showError(
+        "Network error. Please check your connection and try again.",
+      );
+    } else {
+      // Something else happened
+      notificationStore.showError(
+        error.message || locales[currentLang.value].errorChangingPassword,
       );
     }
   }

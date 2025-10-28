@@ -15,6 +15,12 @@ interface ILoginDate {
   password: string;
 }
 
+interface IPasswordChangeData {
+  current_password: string;
+  new_password: string;
+  re_new_password: string;
+}
+
 export const sendRegisterData = async (
   userData: IRegisterData,
 ): Promise<AxiosResponse> => {
@@ -34,5 +40,10 @@ export const getCurrentUserData = async (): Promise<AxiosResponse<IUserInfo>> =>
 
 export const editUserInfo = async (data: IUserInfo): Promise<AxiosResponse> => {
   const response = await apiClient.put("/api/auth/users/me/", data);
+  return response
+}
+
+export const changePassword = async (data: {new_password: string, current_password: string}): Promise<AxiosResponse> => {
+  const response = await apiClient.post("/api/auth/users/set_password/", data);
   return response
 }

@@ -115,6 +115,7 @@ const emit = defineEmits<{
 // Helper Functions
 const getActiveItemTitle = (): string => {
   const translations: Record<string, string> = {
+    all: props.locales[props.currentLanguage].allTasks || "All Tasks",
     today: props.locales[props.currentLanguage].today || "Today",
     upcoming: props.locales[props.currentLanguage].upcoming || "Upcoming",
     completed: props.locales[props.currentLanguage].completed || "Completed",

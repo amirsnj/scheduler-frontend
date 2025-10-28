@@ -38,14 +38,12 @@
       <!-- Task Title -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          {{ locales[currentLanguage].taskTitle || "Task Title" }}
+          {{ locales[currentLanguage].taskTitle }}
         </label>
         <input
           v-model="taskTitle"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          :placeholder="
-            locales[currentLanguage].taskTitle || 'Enter task title'
-          "
+          :placeholder="locales[currentLanguage].enterTaskTitle"
           required
         />
       </div>
@@ -53,15 +51,13 @@
       <!-- Description -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
-          {{ locales[currentLanguage].description || "Description" }}
+          {{ locales[currentLanguage].description }}
         </label>
         <textarea
           v-model="taskDescription"
           rows="3"
           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-          :placeholder="
-            locales[currentLanguage].taskDescription || 'Enter task description'
-          "
+          :placeholder="locales[currentLanguage].enterTaskDescription"
         ></textarea>
       </div>
 
@@ -69,14 +65,14 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].category || "Category" }}
+            {{ locales[currentLanguage].category }}
           </label>
           <select
             v-model="taskCategory"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option :value="null">
-              {{ locales[currentLanguage].noCategory || "No Category" }}
+              {{ locales[currentLanguage].noCategory }}
             </option>
             <option v-for="list in taskLists" :key="list.id" :value="list.id">
               {{ list.title }}
@@ -86,20 +82,20 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].priority || "Priority" }}
+            {{ locales[currentLanguage].priority }}
           </label>
           <select
             v-model="taskPriority"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="L">
-              {{ locales[currentLanguage].lowPriority || "Low" }}
+              {{ locales[currentLanguage].lowPriority }}
             </option>
             <option value="M">
-              {{ locales[currentLanguage].mediumPriority || "Medium" }}
+              {{ locales[currentLanguage].mediumPriority }}
             </option>
             <option value="H">
-              {{ locales[currentLanguage].highPriority || "High" }}
+              {{ locales[currentLanguage].highPriority }}
             </option>
           </select>
         </div>
@@ -109,7 +105,7 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].scheduledDate || "Scheduled Date" }}
+            {{ locales[currentLanguage].scheduledDate }}
           </label>
           <input
             v-model="taskScheduledDate"
@@ -120,7 +116,7 @@
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ locales[currentLanguage].deadline || "Deadline" }}
+            {{ locales[currentLanguage].deadline }}
           </label>
           <input
             v-model="taskDeadline"
@@ -178,7 +174,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <label class="block text-sm font-medium text-gray-700">
-            {{ locales[currentLanguage].subtasks || "Subtasks" }}
+            {{ locales[currentLanguage].subtasks }}
           </label>
           <button
             class="flex items-center gap-1 px-2 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm transition-colors"
@@ -195,7 +191,7 @@
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            {{ locales[currentLanguage].addSubtask || "Add Subtask" }}
+            {{ locales[currentLanguage].addSubtask }}
           </button>
         </div>
 
@@ -215,9 +211,7 @@
               v-model="subtask.title"
               class="flex-1 bg-transparent border-none outline-none text-sm"
               :class="{ 'line-through text-gray-500': subtask.is_completed }"
-              :placeholder="
-                locales[currentLanguage].subtaskTitle || 'Subtask title'
-              "
+              :placeholder="locales[currentLanguage].subtaskTitle"
             />
             <button
               @click="removeSubtask(index)"
@@ -248,9 +242,7 @@
             class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
           />
           <span class="text-sm font-medium text-gray-700">
-            {{
-              locales[currentLanguage].markAsCompleted || "Mark as completed"
-            }}
+            {{ locales[currentLanguage].markAsCompleted }}
           </span>
         </label>
       </div>
@@ -264,7 +256,7 @@
           class="flex-1 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium"
           @click="$emit('delete-task')"
         >
-          {{ locales[currentLanguage].deleteTask || "Delete Task" }}
+          {{ locales[currentLanguage].deleteTask }}
         </button>
         <button
           class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"

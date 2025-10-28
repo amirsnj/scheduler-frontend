@@ -69,7 +69,10 @@
       <div class="flex-1 flex min-h-0 overflow-hidden">
         <!-- Task List Section -->
         <div
-          class="flex-1 lg:flex-none lg:w-96 xl:w-1/2 h-full overflow-hidden"
+          :class="[
+            'flex-1 lg:flex-none lg:w-96 xl:w-1/2 h-full',
+            route.name === 'Setting' ? 'overflow-y-auto' : 'overflow-hidden',
+          ]"
         >
           <router-view v-slot="{ Component }">
             <component
@@ -154,12 +157,8 @@ const notificationStore = useNotificationStore();
 const router = useRouter();
 const route = useRoute();
 
-// const routeList = computed(() => route.query.list as string | undefined);
-// const routeFilter = computed(() => (route.query.filter as string) || "all");
-// const routeDate = computed(() => route.query.date as string | undefined);
-
 const routeList = computed(() => route.query.list as string | undefined);
-const routeFilter = computed(() => (route.params.filter as string) || "all"); // ✅ تغییر از query به params
+const routeFilter = computed(() => (route.params.filter as string) || "all");
 const routeDate = computed(() => route.query.date as string | undefined);
 
 // Reactive data
@@ -226,7 +225,7 @@ watch(routeFilter, (newVal) => {
 // اضافه کردن watch برای routeList
 watch(routeList, (newVal) => {
   if (newVal) {
-    activeItem.value = `list-${newVal}`;
+    activeItem.value = `${newVal}`;
   }
 });
 
@@ -294,16 +293,6 @@ const handleItemSelected = (item: string): void => {
   }
 };
 
-// const handleListSelected = (listName: string): void => {
-//   router.push({ path: "/scheduler/tasks", query: { list: listName } });
-//   activeItem.value = `list-${listName}`;
-//   selectedTask.value = null;
-//   showAddTaskPanel.value = false;
-//   if (isMobileMenuOpen.value) {
-//     closeMobileMenu();
-//   }
-// };
-
 const handleListSelected = (listName: string): void => {
   // ✅ استفاده از query برای list و params برای filter
   router.push({
@@ -311,7 +300,7 @@ const handleListSelected = (listName: string): void => {
     params: { filter: "all" }, // یا می‌توانید undefined بگذارید
     query: { list: listName },
   });
-  activeItem.value = `list-${listName}`;
+  activeItem.value = `${listName}`;
   selectedTask.value = null;
   showAddTaskPanel.value = false;
   if (isMobileMenuOpen.value) {
