@@ -214,23 +214,23 @@ const getPriorityColor = (level: "L" | "M" | "H"): string => {
   return colors[level] || "bg-gray-400";
 };
 
-const getPriorityBadgeClass = (level: "L" | "M" | "H"): string => {
-  const classes = {
-    L: "bg-green-100 text-green-700 border border-green-200",
-    M: "bg-yellow-100 text-yellow-700 border border-yellow-200",
-    H: "bg-red-100 text-red-700 border border-red-200",
-  };
-  return classes[level] || "bg-gray-100 text-gray-700";
-};
+// const getPriorityBadgeClass = (level: "L" | "M" | "H"): string => {
+//   const classes = {
+//     L: "bg-green-100 text-green-700 border border-green-200",
+//     M: "bg-yellow-100 text-yellow-700 border border-yellow-200",
+//     H: "bg-red-100 text-red-700 border border-red-200",
+//   };
+//   return classes[level] || "bg-gray-100 text-gray-700";
+// };
 
-const getPriorityText = (level: "L" | "M" | "H"): string => {
-  const priorities = {
-    L: "Low",
-    M: "Med",
-    H: "High",
-  };
-  return priorities[level] || "N/A";
-};
+// const getPriorityText = (level: "L" | "M" | "H"): string => {
+//   const priorities = {
+//     L: "Low",
+//     M: "Med",
+//     H: "High",
+//   };
+//   return priorities[level] || "N/A";
+// };
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
