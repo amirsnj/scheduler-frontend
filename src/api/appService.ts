@@ -10,6 +10,8 @@ export interface TaskUpdate {
   category?: number | null;
   priority_level?: "L" | "M" | "H";
   scheduled_date?: string;
+  start_time?: string;
+  end_time?: string;
   dead_line?: string | null;
   is_completed?: boolean;
 }

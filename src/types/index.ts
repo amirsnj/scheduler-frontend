@@ -33,6 +33,8 @@ export interface Task {
   priority_level: "L" | "M" | "H";
   scheduled_date: string;
   dead_line?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   is_completed: boolean;
   subTasks: SubTask[];
   tags: Tag[];
@@ -46,6 +48,8 @@ export interface TaskCreate {
   priority_level?: "L" | "M" | "H";
   scheduled_date?: string;
   dead_line?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   is_completed?: boolean;
   tags: number[];
   subTasks: SubTaskCreate[];
@@ -58,6 +62,8 @@ export interface TaskUpdate {
   priority_level?: "L" | "M" | "H";
   scheduled_date?: string;
   dead_line?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
   is_completed?: boolean;
   tags?: number[];
   subTasks?: SubTaskCreate[];
@@ -96,8 +102,9 @@ export const TaskStatus = {
   OVERDUE: "overdue",
 } as const;
 
-export type PriorityLevelType = typeof PriorityLevel[keyof typeof PriorityLevel];
-export type TaskStatusType = typeof TaskStatus[keyof typeof TaskStatus];
+export type PriorityLevelType =
+  (typeof PriorityLevel)[keyof typeof PriorityLevel];
+export type TaskStatusType = (typeof TaskStatus)[keyof typeof TaskStatus];
 
 // ============= User Info =============
 
@@ -106,5 +113,5 @@ export interface IUserInfo {
   username: string;
   email: string;
   first_name?: string;
-  last_name?: string
+  last_name?: string;
 }

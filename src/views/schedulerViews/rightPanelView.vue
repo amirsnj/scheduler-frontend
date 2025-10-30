@@ -125,6 +125,31 @@
           />
         </div>
       </div>
+      <!-- start time and end time -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            {{ locales[currentLanguage].startTime }}
+          </label>
+          <input
+            v-model="taskStartTime"
+            type="time" 
+            lang="en-GB"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            {{ locales[currentLanguage].endTime }}
+          </label>
+          <input
+            v-model="taskEndTime"
+            type="time"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
 
       <!-- Tags -->
       <div>
@@ -253,22 +278,66 @@
       <div class="flex gap-3">
         <button
           v-if="!isAddingTask"
-          class="flex-1 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium"
+          class="flex-1 px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           @click="$emit('delete-task')"
+          :disabled="isDeleting"
         >
-          {{ locales[currentLanguage].deleteTask }}
+          <span v-if="!isDeleting">{{
+            locales[currentLanguage].deleteTask
+          }}</span>
+          <span v-else class="inline-flex items-center justify-center gap-2">
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+            {{ locales[currentLanguage].deleting || "Deleting..." }}
+          </span>
         </button>
         <button
-          class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           @click="saveTask"
-          :disabled="!taskTitle.trim()"
-          :class="{ 'opacity-50 cursor-not-allowed': !taskTitle.trim() }"
+          :disabled="!taskTitle.trim() || isSaving"
         >
-          {{
-            isAddingTask
-              ? locales[currentLanguage].createTask || "Create Task"
-              : locales[currentLanguage].updateTask || "Update Task"
-          }}
+          <span v-if="!isSaving">
+            {{
+              isAddingTask
+                ? locales[currentLanguage].createTask || "Create Task"
+                : locales[currentLanguage].updateTask || "Update Task"
+            }}
+          </span>
+          <span v-else class="inline-flex items-center justify-center gap-2">
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              ></path>
+            </svg>
+            {{
+              isAddingTask
+                ? locales[currentLanguage].creating || "Creating..."
+                : locales[currentLanguage].updating || "Updating..."
+            }}
+          </span>
         </button>
       </div>
     </div>
@@ -296,6 +365,8 @@ const props = defineProps<{
   showPanel: boolean;
   isAddingTask: boolean;
   isMobile?: boolean;
+  isSaving?: boolean;
+  isDeleting?: boolean;
 }>();
 
 // تعریف emits
@@ -312,6 +383,8 @@ const taskCategory = ref<number | null>(null);
 const taskPriority = ref<"L" | "M" | "H">("L");
 const taskScheduledDate = ref<string>("");
 const taskDeadline = ref<string>("");
+const taskStartTime = ref<string | null>("");
+const taskEndTime = ref<string | null>("");
 const taskTags = ref<Tag[]>([]);
 const taskSubtasks = ref<SubTask[]>([]);
 const taskCompleted = ref<boolean>(false);
@@ -332,10 +405,12 @@ watch(
       taskTitle.value = newTask.title;
       taskDescription.value = newTask.description;
       taskCategory.value =
-        newTask.category !== undefined ? newTask.category : null;
+      newTask.category !== undefined ? newTask.category : null;
       taskPriority.value = newTask.priority_level;
       taskScheduledDate.value = newTask.scheduled_date || "";
       taskDeadline.value = newTask.dead_line || "";
+      taskStartTime.value = newTask.start_time || "";
+      taskEndTime.value = newTask.end_time || "";
       taskTags.value = [...newTask.tags];
       taskSubtasks.value = [...newTask.subTasks];
       taskCompleted.value = newTask.is_completed;
@@ -362,6 +437,8 @@ const resetForm = (): void => {
   taskPriority.value = "L";
   taskScheduledDate.value = "";
   taskDeadline.value = "";
+  taskStartTime.value = "";
+  taskEndTime.value = "";
   taskTags.value = [];
   taskSubtasks.value = [];
   taskCompleted.value = false;
@@ -415,7 +492,9 @@ const saveTask = (): void => {
     priority_level: taskPriority.value,
     scheduled_date: taskScheduledDate.value || undefined,
     dead_line: taskDeadline.value || null,
-    is_completed: taskCompleted.value, // ⭐ اضافه شده
+    start_time: taskStartTime.value || null,
+    end_time: taskEndTime.value || null,
+    is_completed: taskCompleted.value,
     tags: taskTags.value.map((tag) => tag.id),
     subTasks: taskSubtasks.value
       .filter((st) => st.title.trim() !== "")

@@ -178,7 +178,6 @@ export const useTaskStore = defineStore("task", () => {
   };
 
   const addTask = async (taskData: TaskCreate): Promise<void> => {
-    loading.value = true;
     error.value = null;
     try {
       const response = await createTask(taskData);
@@ -198,8 +197,6 @@ export const useTaskStore = defineStore("task", () => {
         "Error creating task";
       console.error("Error creating task:", err);
       throw err;
-    } finally {
-      loading.value = false;
     }
   };
 
@@ -207,7 +204,6 @@ export const useTaskStore = defineStore("task", () => {
     taskId: number,
     updates: Partial<Task>,
   ): Promise<void> => {
-    loading.value = true;
     error.value = null;
     try {
       const updateData = {
@@ -217,6 +213,8 @@ export const useTaskStore = defineStore("task", () => {
         priority_level: updates.priority_level,
         scheduled_date: updates.scheduled_date,
         dead_line: updates.dead_line,
+        start_time: updates.start_time,
+        end_time: updates.end_time,
         is_completed: updates.is_completed,
         tags: updates.tags?.map((tag) => tag.id) || [],
         subTasks:
@@ -269,13 +267,10 @@ export const useTaskStore = defineStore("task", () => {
         "Error updating task";
       console.error("Error updating task:", err);
       throw err;
-    } finally {
-      loading.value = false;
     }
   };
 
   const removeTask = async (taskId: number): Promise<void> => {
-    loading.value = true;
     error.value = null;
     try {
       await deleteTask(taskId);
@@ -307,8 +302,6 @@ export const useTaskStore = defineStore("task", () => {
         "Error deleting task";
       console.error("Error deleting task:", err);
       throw err;
-    } finally {
-      loading.value = false;
     }
   };
 

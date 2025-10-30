@@ -93,6 +93,8 @@
             :tags="tagStore.tags"
             :show-panel="!!selectedTask || showAddTaskPanel"
             :is-adding-task="showAddTaskPanel"
+            :is-saving="isSaving"
+            :is-deleting="isDeleting"
             @save-task="handleSaveTask"
             @delete-task="handleDeleteTask"
             @close-panel="handleClosePanel"
@@ -113,6 +115,8 @@
             :show-panel="true"
             :is-adding-task="showAddTaskPanel"
             :is-mobile="true"
+            :is-saving="isSaving"
+            :is-deleting="isDeleting"
             @save-task="handleSaveTask"
             @delete-task="handleDeleteTask"
             @close-panel="handleCloseMobilePanel"
@@ -168,6 +172,10 @@ const isMobileMenuOpen = ref<boolean>(false);
 const showMobilePanel = ref<boolean>(false);
 const showAddTaskPanel = ref<boolean>(false);
 const currentDate = ref<string>(new Date().toISOString().split("T")[0]);
+
+// Button loading states for task actions
+const isSaving = ref<boolean>(false);
+const isDeleting = ref<boolean>(false);
 
 // Delete modal state
 const showDeleteModal = ref<boolean>(false);
@@ -348,6 +356,7 @@ const handleSaveTask = async (
   taskData: TaskCreate & { isAddingTask: boolean },
 ): Promise<void> => {
   try {
+    isSaving.value = true;
     if (taskData.isAddingTask) {
       await taskStore.addTask(taskData);
       showAddTaskPanel.value = false;
@@ -360,6 +369,8 @@ const handleSaveTask = async (
         category: taskData.category,
         priority_level: taskData.priority_level,
         scheduled_date: taskData.scheduled_date,
+        start_time: taskData.start_time,
+        end_time: taskData.end_time,
         dead_line: taskData.dead_line,
         is_completed: taskData.is_completed || false,
         subTasks: taskData.subTasks.filter(
@@ -385,12 +396,15 @@ const handleSaveTask = async (
         : locales[currentLanguage.value].errorUpdatingTask ||
             "Error updating task",
     );
+  } finally {
+    isSaving.value = false;
   }
 };
 
 const handleDeleteTask = async (): Promise<void> => {
   if (selectedTask.value) {
     try {
+      isDeleting.value = true;
       await taskStore.deleteTask(selectedTask.value.id);
       selectedTask.value = null;
       if (window.innerWidth < 1024) {
@@ -401,6 +415,8 @@ const handleDeleteTask = async (): Promise<void> => {
       notificationStore.showError(
         locales[currentLanguage.value].errorDeletingTask,
       );
+    } finally {
+      isDeleting.value = false;
     }
   }
 };

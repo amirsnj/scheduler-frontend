@@ -44,8 +44,9 @@ apiClient.interceptors.response.use(
     const originalRequest: any = error.config;
 
     // Skip token refresh for auth endpoints (login, register)
-    const isAuthEndpoint = originalRequest.url?.includes("/api/auth/jwt/create/") || 
-                          originalRequest.url?.includes("/api/auth/users/");
+    const isAuthEndpoint =
+      originalRequest.url?.includes("/api/auth/jwt/create/") ||
+      originalRequest.url?.includes("/api/auth/users/");
 
     if (
       error.response &&
@@ -74,7 +75,7 @@ apiClient.interceptors.response.use(
         }
 
         const res = await axios.post(
-          "http://127.0.0.1:8000/api/auth/refresh/",
+          "https://scheduler-backend-production-cc31.up.railway.app/api/auth/refresh/",
           {
             refresh: refreshToken,
           },
