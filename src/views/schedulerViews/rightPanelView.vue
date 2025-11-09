@@ -133,7 +133,7 @@
           </label>
           <input
             v-model="taskStartTime"
-            type="time" 
+            type="time"
             lang="en-GB"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -405,7 +405,7 @@ watch(
       taskTitle.value = newTask.title;
       taskDescription.value = newTask.description;
       taskCategory.value =
-      newTask.category !== undefined ? newTask.category : null;
+        newTask.category !== undefined ? newTask.category : null;
       taskPriority.value = newTask.priority_level;
       taskScheduledDate.value = newTask.scheduled_date || "";
       taskDeadline.value = newTask.dead_line || "";

@@ -4,10 +4,12 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 import router from "@/router";
+import { BASE_URL } from "./api_constant";
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: "https://scheduler-backend-production-cc31.up.railway.app",
-  timeout: 10000,
+  // baseURL: "https://scheduler-backend-production-cc31.up.railway.app",
+  baseURL: BASE_URL,
+  timeout: 6000,
   headers: {
     "Content-Type": "application/json",
   },

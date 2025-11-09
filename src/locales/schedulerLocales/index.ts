@@ -112,6 +112,9 @@ export const locales = {
     currentPasswordRequired: "Current password is required",
     startTime: "Start Time (Optional)",
     endTime: "End Time (Optional)",
+    planetary: "Planetary Hours",
+    updating: "Updating...",
+    deleting: "Deleting...",
   },
   fa: {
     menu: "منو",
@@ -225,5 +228,8 @@ export const locales = {
     currentPasswordRequired: "گذرواژه فعلی الزامی است",
     startTime: "زمان شروع (اختیاری)",
     endTime: "زمان پایان (اختیاری)",
+    planetary: "ساعت سیارات",
+    updating: "بروزرسانی...",
+    deleting: "حذف...",
   },
 };

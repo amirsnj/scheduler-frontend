@@ -46,6 +46,7 @@
         :subtasks-text="
           locales[currentLanguage].subtasks?.toLowerCase() || 'subtasks'
         "
+        :is-toggling="togglingTaskIds?.[task.id] || false"
         @task-selected="$emit('task-selected', $event)"
         @toggle-completion="$emit('toggle-task-completion', $event)"
       />
@@ -81,6 +82,7 @@ const props = defineProps<{
   selectedTask: Task | null;
   isLoading: boolean;
   currentDate: string;
+  togglingTaskIds?: Record<number, boolean>;
 }>();
 
 // Reactive data for date picker

@@ -176,6 +176,7 @@ const currentDate = ref<string>(new Date().toISOString().split("T")[0]);
 // Button loading states for task actions
 const isSaving = ref<boolean>(false);
 const isDeleting = ref<boolean>(false);
+const togglingTaskIds = ref<Record<number, boolean>>({});
 
 // Delete modal state
 const showDeleteModal = ref<boolean>(false);
@@ -286,6 +287,12 @@ const handleItemSelected = (item: string): void => {
       params: { filter: "calendar" },
       query: { date: today },
     });
+  } else if (item === "planetary") {
+    router.push({
+      name: "Planetary",
+      params: {},
+      query: {},
+    });
   } else {
     router.push({
       name: "Tasks",
@@ -342,6 +349,7 @@ const handleToggleTaskCompletion = async (
   taskId: number | string,
 ): Promise<void> => {
   const id = typeof taskId === "string" ? parseInt(taskId) : taskId;
+  togglingTaskIds.value[id] = true;
   try {
     await taskStore.toggleTaskComplete(id);
   } catch (error) {
@@ -349,6 +357,8 @@ const handleToggleTaskCompletion = async (
     notificationStore.showError(
       locales[currentLanguage.value].errorUpdatingTask || "Error updating task",
     );
+  } finally {
+    delete togglingTaskIds.value[id];
   }
 };
 
@@ -635,6 +645,7 @@ const getComponentProps = (routeName: string | symbol | null | undefined) => {
         selectedTask: selectedTask.value,
         isLoading: taskStore.loading,
         currentDate: currentDate.value,
+        togglingTaskIds: togglingTaskIds.value,
         "onUpdate:selectedDate": handleDateSelected,
       };
     case "Setting":

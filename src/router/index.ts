@@ -1,8 +1,8 @@
 import LoginView from "@/views/authViews/LoginView.vue";
 import RegisterView from "@/views/authViews/RegisterView.vue";
 import SchedulerLayout from "@/layouts/schedulerLayouts/schedulerLayout.vue";
-// import MainContent from "@/components/schedulerComponents/MainContent.vue";
 import MainContentView from "@/views/schedulerViews/mainContentView.vue";
+import PlanetaryView from "@/views/planetaryViews/planetaryView.vue";
 import {
   createRouter,
   createWebHistory,
@@ -80,9 +80,14 @@ const routes: RouteRecordRaw[] = [
       {
         path: "setting",
         name: "Setting",
-        component: SettingView
-      }
+        component: SettingView,
+      },
     ],
+  },
+  {
+    path: "/planetary",
+    component: PlanetaryView,
+    name: "Planetary",
   },
 ];
 

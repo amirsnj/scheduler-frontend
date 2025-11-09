@@ -151,6 +151,61 @@
               </svg>
             </template>
           </TaskListItem>
+
+          <TaskListItem
+            :title="locales[currentLanguage].planetary"
+            :is-active="activeItem === 'planetary'"
+            :show-count="false"
+            @click="setActive('planetary')"
+          >
+            <template #icon>
+              <svg
+                class="flex-shrink-0"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <!-- Back part of ring -->
+                <ellipse
+                  cx="12"
+                  cy="12"
+                  rx="9"
+                  ry="3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-dasharray="0 14"
+                  stroke-dashoffset="-7"
+                />
+
+                <!-- Saturn's body -->
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="5"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                />
+
+                <!-- Front part of ring -->
+                <ellipse
+                  cx="12"
+                  cy="12"
+                  rx="9"
+                  ry="3"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                  stroke-dasharray="14 0"
+                  stroke-dashoffset="-7"
+                />
+              </svg>
+            </template>
+          </TaskListItem>
         </ul>
       </div>
 

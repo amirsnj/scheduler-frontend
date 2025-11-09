@@ -180,6 +180,7 @@ export const useTaskStore = defineStore("task", () => {
   const addTask = async (taskData: TaskCreate): Promise<void> => {
     error.value = null;
     try {
+      console.log(taskData);
       const response = await createTask(taskData);
       tasks.value.push(response.data);
       if (

@@ -14,7 +14,7 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icons/apple-touch-icon.png"],
       manifest: {
-        name: "Scheduler - Task Management App",
+        name: "Scheduler",
         short_name: "Scheduler",
         description:
           "A powerful task scheduler application for managing your daily tasks",
@@ -100,7 +100,7 @@ export default defineConfig({
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 60 * 24, // 24 hours
               },
-              networkTimeoutSeconds: 10,
+              networkTimeoutSeconds: 6,
               cacheableResponse: {
                 statuses: [0, 200],
               },
