@@ -354,7 +354,9 @@ import type {
   ISubTask,
   ILocale,
 } from "@/types/index";
-import { title } from "process";
+import { useNotificationStore } from "@/store/notificationStore";
+
+const notificationStore = useNotificationStore()
 
 // تعریف props
 const props = defineProps<{
@@ -483,6 +485,21 @@ const toggleSubtask = (index: number): void => {
 
 const saveTask = (): void => {
   if (!taskTitle.value.trim()) return;
+
+  if (taskDeadline.value && !taskScheduledDate.value) {
+    notificationStore.showWarning(props.locales[props.currentLanguage].youMustSelectAScheduledDateBeforeSettingADeadline)
+    return;
+  }
+
+  // ✅ Validation: end time must be after start time
+  if (taskStartTime.value && taskEndTime.value) {
+    const start = new Date(`1970-01-01T${taskStartTime.value}`);
+    const end = new Date(`1970-01-01T${taskEndTime.value}`);
+    if (end <= start) {
+      notificationStore.showWarning(props.locales[props.currentLanguage].endTimeMustBeAfterStartTime)
+      return;
+    }
+  }
 
   const taskData: ITaskCreate & { isAddingTask: boolean } = {
     title: taskTitle.value.trim(),

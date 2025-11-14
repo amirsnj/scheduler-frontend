@@ -69,7 +69,7 @@ import CalendarNavigation from "@/components/scheduler/mainContentComponents/Cal
 import PageHeader from "@/components/scheduler/mainContentComponents/PageHeader.vue";
 import LoadingSpinner from "@/components/scheduler/mainContentComponents/LoadingSpinner.vue";
 import EmptyState from "@/components/scheduler/mainContentComponents/EmptyState.vue";
-import { useTaskListStore } from "@/store";
+import { useTaskListStore } from "@/store/taskListStore";
 
 const taskStore = useTaskListStore();
 

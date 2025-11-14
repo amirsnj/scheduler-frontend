@@ -149,7 +149,6 @@ import type {
   ITaskCreate,
   ITaskList,
   ITag,
-  ISubTask,
 } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/taskStore";
@@ -157,6 +156,7 @@ import { useTaskListStore } from "@/store/taskListStore";
 import { useTagStore } from "@/store/tagStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
 
 // Pinia stores
 const taskStore = useTaskStore();
@@ -246,7 +246,7 @@ watch(routeList, (newVal) => {
 
 watch(
   routeDate,
-  (newDate) => {
+  (newDate: any) => {
     if (newDate && routeFilter.value === "calendar") {
       currentDate.value = newDate;
     }
@@ -379,7 +379,6 @@ const handleSaveTask = async (
       notificationStore.showSuccess(locales[currentLanguage.value].taskCreated);
     } else if (selectedTask.value) {
       await taskStore.updateTask(selectedTask.value.id, {
-        id: selectedTask.value.id,
         title: taskData.title,
         description: taskData.description,
         category: taskData.category,
@@ -410,16 +409,21 @@ const handleSaveTask = async (
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
     }
-  } catch (error) {
-    console.error("Error saving task:", error);
+} catch (error) {
+  console.error("Error saving task:", error);
+
+  if (axios.isAxiosError(error)) {
     notificationStore.showError(
       taskData.isAddingTask
-        ? locales[currentLanguage.value].errorCreatingTask ||
-            "Error creating task"
-        : locales[currentLanguage.value].errorUpdatingTask ||
-            "Error updating task",
+        ? error.response?.data?.detail ||
+            locales[currentLanguage.value].errorCreatingTask
+        : error.response?.data?.detail ||
+            locales[currentLanguage.value].errorUpdatingTask,
     );
-  } finally {
+  } else {
+    notificationStore.showError(locales[currentLanguage.value].errorUpdatingTask);
+  }
+} finally {
     isSaving.value = false;
   }
 };

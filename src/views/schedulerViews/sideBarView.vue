@@ -304,7 +304,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import type { ITask, ITaskList, ITag, ILocale } from "@/types/index";
-import { useTaskStore } from "@/store/index";
+import { useTaskStore } from "@/store/taskStore";
 
 // Import Components
 import TaskListItem from "@/components/scheduler/sideBarComponents/TaskListItem.vue";
@@ -337,7 +337,7 @@ const emit = defineEmits<{
   (e: "list-selected", listName: string): void;
   (e: "tag-selected", tag: number): void;
   (e: "add-new-list", list: ITaskList): void;
-  (e: "add-new-tag", tag: ITag): void;
+  (e: "add-new-tag", tag: Omit<ITag, "id">): void;
   (e: "edit-list", listId: number, newTitle: string): void;
   (e: "delete-list", listId: number): void;
   (e: "edit-tag", tagId: number, newTitle: string): void;
