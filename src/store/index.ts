@@ -8,7 +8,7 @@ export { useNotificationStore } from "./notificationStore";
 // Legacy store for backward compatibility - will be removed in future versions
 import { defineStore, createPinia, setActivePinia } from "pinia";
 import { ref, computed, readonly } from "vue";
-import type { Tag, TaskList, SubTask, Task, TaskCreate } from "@/types";
+import type { ITag, ITaskList, ISubTask, ITask, ITaskCreate } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
 import {
@@ -19,8 +19,8 @@ import {
   getTags,
   getTaskCategories,
   getTasks,
-  updateTask as updateTaskAPI,
-  toggleTaskComplete as toggleTaskAPI,
+  fullUpdateTask as updateTaskAPI,
+  toggleTaskCompletion as toggleTaskAPI,
   getTasksByDate,
   updateTaskCategory,
   deleteTaskCategory,
@@ -34,12 +34,12 @@ setActivePinia(createPinia());
 
 export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
   // State
-  const tasks = ref<Task[]>([]);
-  const taskLists = ref<TaskList[]>([]);
-  const tags = ref<Tag[]>([]);
+  const tasks = ref<ITask[]>([]);
+  const taskLists = ref<ITaskList[]>([]);
+  const tags = ref<ITag[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-  const tasksByDate = ref<Map<string, Task[]>>(new Map());
+  const tasksByDate = ref<Map<string, ITask[]>>(new Map());
 
   // Getters (Computed)
   const completedTasks = computed(() => {
@@ -142,7 +142,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       tasksByDate.value.set(
         today,
         tasks.value.filter(
-          (task: Task) =>
+          (task: ITask) =>
             task.scheduled_date === today ||
             (task.dead_line && task.dead_line === today),
         ),
@@ -150,7 +150,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
       tasksByDate.value.set(
         tomorrowStr,
         tasks.value.filter(
-          (task: Task) =>
+          (task: ITask) =>
             task.scheduled_date === tomorrowStr ||
             (task.dead_line && task.dead_line === tomorrowStr),
         ),
@@ -199,7 +199,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     }
   };
 
-  const addTask = async (taskData: TaskCreate): Promise<void> => {
+  const addTask = async (taskData: ITaskCreate): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
@@ -228,7 +228,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
 
   const updateTask = async (
     taskId: number,
-    updates: Partial<Task>,
+    updates: Partial<ITask>,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -365,11 +365,11 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
   // SubTask Actions
   const addSubTask = async (
     taskId: number,
-    subTaskData: Omit<SubTask, "id">,
+    subTaskData: Omit<ISubTask, "id">,
   ): Promise<void> => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
-      const newSubTask: SubTask = {
+      const newSubTask: ISubTask = {
         ...subTaskData,
         id: Date.now(),
       };
@@ -381,7 +381,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
   const updateSubTask = async (
     taskId: number,
     subTaskId: number,
-    updates: Partial<SubTask>,
+    updates: Partial<ISubTask>,
   ): Promise<void> => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
@@ -440,7 +440,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
   };
 
   const addTaskList = async (
-    listData: Omit<TaskList, "id" | "task_count">,
+    listData: Omit<ITaskList, "id" | "task_count">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -465,7 +465,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
 
   const updateTaskList = async (
     listId: number,
-    updates: Omit<TaskList, "id">,
+    updates: Omit<ITaskList, "id">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -548,7 +548,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     }
   };
 
-  const addTag = async (tagData: Omit<Tag, "id">): Promise<void> => {
+  const addTag = async (tagData: Omit<ITag, "id">): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
@@ -572,12 +572,12 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
 
   const updateTag = async (
     tagId: number,
-    updates: Omit<Tag, "id">,
+    updates: Omit<ITag, "id">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
-      const response: AxiosResponse<Tag> = await updateTagService(
+      const response: AxiosResponse<ITag> = await updateTagService(
         tagId,
         updates,
       );
@@ -641,7 +641,7 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     error.value = null;
   };
 
-  const searchTasks = (query: string): Task[] => {
+  const searchTasks = (query: string): ITask[] => {
     const lowercaseQuery = query.toLowerCase();
     return tasks.value.filter(
       (task) =>
@@ -653,15 +653,15 @@ export const useTaskStoreLegacy = defineStore("taskLegacy", () => {
     );
   };
 
-  const getTaskById = (taskId: number): Task | undefined => {
+  const getTaskById = (taskId: number): ITask | undefined => {
     return tasks.value.find((task) => task.id === taskId);
   };
 
-  const getTagById = (tagId: number): Tag | undefined => {
+  const getTagById = (tagId: number): ITag | undefined => {
     return tags.value.find((tag) => tag.id === tagId);
   };
 
-  const getTaskListById = (listId: number): TaskList | undefined => {
+  const getTaskListById = (listId: number): ITaskList | undefined => {
     return taskLists.value.find((list) => list.id === listId);
   };
 

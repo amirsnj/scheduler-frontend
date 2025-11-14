@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Task, Locale } from "@/types/index";
+import type { ITask, ILocale } from "@/types/index";
 import { ref, watch } from "vue";
 import TaskCard from "@/components/scheduler/mainContentComponents/TaskCard.vue";
 import CalendarNavigation from "@/components/scheduler/mainContentComponents/CalendarNavigation.vue";
@@ -76,10 +76,10 @@ const taskStore = useTaskListStore();
 // Props
 const props = defineProps<{
   currentLanguage: string;
-  locales: Record<string, Locale>;
+  locales: Record<string, ILocale>;
   activeItem: string;
-  tasks: Task[];
-  selectedTask: Task | null;
+  tasks: ITask[];
+  selectedTask: ITask | null;
   isLoading: boolean;
   currentDate: string;
   togglingTaskIds?: Record<number, boolean>;
@@ -110,7 +110,7 @@ const emit = defineEmits<{
   today: [];
   "next-day": [];
   "update:selectedDate": [date: string];
-  "task-selected": [task: Task];
+  "task-selected": [task: ITask];
   "toggle-task-completion": [taskId: string | number];
 }>();
 

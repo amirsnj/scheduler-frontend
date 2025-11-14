@@ -1,5 +1,5 @@
 import { computed, ref } from "vue";
-import type { Task } from "@/types";
+import type { ITask } from "@/types";
 
 export function useTaskFilters(tasks: any) {
   const searchQuery = ref<string>("");
@@ -14,7 +14,7 @@ export function useTaskFilters(tasks: any) {
     // Search filter
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase();
-      filtered = filtered.filter((task: Task) =>
+      filtered = filtered.filter((task: ITask) =>
         task.title.toLowerCase().includes(query) ||
         task.description.toLowerCase().includes(query) ||
         task.tags.some((tag) => tag.title.toLowerCase().includes(query))
@@ -23,28 +23,28 @@ export function useTaskFilters(tasks: any) {
 
     // Priority filter
     if (selectedPriority.value) {
-      filtered = filtered.filter((task: Task) => 
+      filtered = filtered.filter((task: ITask) => 
         task.priority_level === selectedPriority.value
       );
     }
 
     // Category filter
     if (selectedCategory.value) {
-      filtered = filtered.filter((task: Task) => 
+      filtered = filtered.filter((task: ITask) => 
         task.category === selectedCategory.value
       );
     }
 
     // Tag filter
     if (selectedTag.value) {
-      filtered = filtered.filter((task: Task) => 
+      filtered = filtered.filter((task: ITask) => 
         task.tags.some((tag) => tag.id === selectedTag.value)
       );
     }
 
     // Completed filter
     if (!showCompleted.value) {
-      filtered = filtered.filter((task: Task) => !task.is_completed);
+      filtered = filtered.filter((task: ITask) => !task.is_completed);
     }
 
     return filtered;

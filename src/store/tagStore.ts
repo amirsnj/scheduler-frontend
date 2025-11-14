@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { Tag } from "@/types";
+import type { ITag } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
 import {
@@ -15,7 +15,7 @@ import type { AxiosResponse } from "axios";
 
 export const useTagStore = defineStore("tag", () => {
   // State
-  const tags = ref<Tag[]>([]);
+  const tags = ref<ITag[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
 
@@ -41,7 +41,7 @@ export const useTagStore = defineStore("tag", () => {
     }
   };
 
-  const addTag = async (tagData: Omit<Tag, "id">): Promise<void> => {
+  const addTag = async (tagData: Omit<ITag, "id">): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
@@ -65,12 +65,12 @@ export const useTagStore = defineStore("tag", () => {
 
   const updateTag = async (
     tagId: number,
-    updates: Omit<Tag, "id">,
+    updates: Omit<ITag, "id">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
     try {
-      const response: AxiosResponse<Tag> = await updateTagService(
+      const response: AxiosResponse<ITag> = await updateTagService(
         tagId,
         updates,
       );

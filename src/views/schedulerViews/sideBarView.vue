@@ -303,7 +303,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import type { Task, TaskList, Tag, Locale } from "@/types/index";
+import type { ITask, ITaskList, ITag, ILocale } from "@/types/index";
 import { useTaskStore } from "@/store/index";
 
 // Import Components
@@ -320,11 +320,11 @@ const taskStore = useTaskStore();
 // Props
 const props = defineProps<{
   currentLanguage: string;
-  locales: Record<string, Locale>;
+  locales: Record<string, ILocale>;
   activeItem: string;
-  tasks: Task[];
-  taskLists: TaskList[];
-  tags: Tag[];
+  tasks: ITask[];
+  taskLists: ITaskList[];
+  tags: ITag[];
   isMobile?: boolean;
   isMobileOpen?: boolean;
 }>();
@@ -336,8 +336,8 @@ const emit = defineEmits<{
   (e: "close-mobile"): void;
   (e: "list-selected", listName: string): void;
   (e: "tag-selected", tag: number): void;
-  (e: "add-new-list", list: TaskList): void;
-  (e: "add-new-tag", tag: Tag): void;
+  (e: "add-new-list", list: ITaskList): void;
+  (e: "add-new-tag", tag: ITag): void;
   (e: "edit-list", listId: number, newTitle: string): void;
   (e: "delete-list", listId: number): void;
   (e: "edit-tag", tagId: number, newTitle: string): void;
@@ -374,7 +374,7 @@ const toggleListEditMode = (): void => {
   }
 };
 
-const handleListClick = (list: TaskList): void => {
+const handleListClick = (list: ITaskList): void => {
   if (isListEditMode.value) {
     editingListId.value = editingListId.value === list.id ? null : list.id;
   } else {
@@ -435,17 +435,15 @@ const getListColor = (listId: number): string => {
 };
 
 const handleNewList = (name: string): void => {
-  const newList: TaskList = {
+  const newList: ITaskList = {
     id: Date.now(),
     title: name,
-    task_count: 0,
   };
   emit("add-new-list", newList);
 };
 
 const handleNewTag = (name: string): void => {
-  const newTag: Tag = {
-    id: Date.now(),
+  const newTag: Omit<ITag, "id"> = {
     title: name,
   };
   emit("add-new-tag", newTag);

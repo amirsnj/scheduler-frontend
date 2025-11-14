@@ -1,59 +1,58 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { Task, TaskCreate, SubTask } from "@/types";
+import type { ITask, ITaskCreate, ITaskUpdate } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
 import {
   createTask,
   deleteTask,
   getTasks,
-  updateTask as updateTaskAPI,
-  toggleTaskComplete as toggleTaskAPI,
+  fullUpdateTask as updateTaskAPI,
+  toggleTaskCompletion as toggleTaskAPI,
   getTasksByDate,
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
 
+const isToday = (task: ITask): boolean => {
+  const today = new Date().toISOString().split("T")[0];
+  
+  return (task.scheduled_date <= today) && ((task.dead_line || today) >= today)
+}
+
 export const useTaskStore = defineStore("task", () => {
   // State
-  const tasks = ref<Task[]>([]);
+  const tasks = ref<ITask[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
-  const tasksByDate = ref<Map<string, Task[]>>(new Map());
+  const tasksByDate = ref<Map<string, ITask[]>>(new Map());
+
 
   // Getters (Computed)
   const completedTasks = computed(() => {
-    const today = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        task.is_completed &&
-        (task.scheduled_date === today || task.dead_line === today),
+        task.is_completed && isToday(task)
     );
   });
 
   const pendingTasks = computed(() => {
-    const today = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        !task.is_completed &&
-        (task.scheduled_date === today || task.dead_line === today),
+        !task.is_completed && isToday(task)
     );
   });
 
   const tasksByCategory = computed(() => (categoryId: number | null) => {
-    const today = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        task.category === categoryId &&
-        (task.scheduled_date === today || task.dead_line === today),
+        task.category === categoryId && isToday(task)
     );
   });
 
   const tasksByPriority = computed(() => (priority: "L" | "M" | "H") => {
-    const today = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        task.priority_level === priority &&
-        (task.scheduled_date === today || task.dead_line === today),
+        task.priority_level === priority && isToday(task)
     );
   });
 
@@ -67,23 +66,19 @@ export const useTaskStore = defineStore("task", () => {
   });
 
   const overdueTasks = computed(() => {
-    const now = new Date();
-    const today = now.toISOString().split("T")[0];
+    const now = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
         task.dead_line &&
-        new Date(task.dead_line) < now &&
-        !task.is_completed &&
-        (task.scheduled_date === today || task.dead_line === today),
+        task.dead_line < now &&
+        !task.is_completed
     );
   });
 
   const todayTasks = computed(() => {
-    const today = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
       (task) =>
-        task.scheduled_date === today ||
-        (task.dead_line && task.dead_line === today),
+        isToday(task)
     );
   });
 
@@ -121,7 +116,7 @@ export const useTaskStore = defineStore("task", () => {
       tasksByDate.value.set(
         today,
         tasks.value.filter(
-          (task: Task) =>
+          (task: ITask) =>
             task.scheduled_date === today ||
             (task.dead_line && task.dead_line === today),
         ),
@@ -129,7 +124,7 @@ export const useTaskStore = defineStore("task", () => {
       tasksByDate.value.set(
         tomorrowStr,
         tasks.value.filter(
-          (task: Task) =>
+          (task: ITask) =>
             task.scheduled_date === tomorrowStr ||
             (task.dead_line && task.dead_line === tomorrowStr),
         ),
@@ -152,9 +147,7 @@ export const useTaskStore = defineStore("task", () => {
     error.value = null;
     try {
       const response = await getTasksByDate(date);
-      const fetchedTasks = Array.isArray(response.data)
-        ? response.data
-        : response.data.tasks || [];
+      const fetchedTasks = response.data || []
       tasksByDate.value.set(date, fetchedTasks);
       tasks.value = [
         ...tasks.value.filter(
@@ -177,10 +170,9 @@ export const useTaskStore = defineStore("task", () => {
     }
   };
 
-  const addTask = async (taskData: TaskCreate): Promise<void> => {
+  const addTask = async (taskData: ITaskCreate): Promise<void> => {
     error.value = null;
     try {
-      console.log(taskData);
       const response = await createTask(taskData);
       tasks.value.push(response.data);
       if (
@@ -203,29 +195,12 @@ export const useTaskStore = defineStore("task", () => {
 
   const updateTask = async (
     taskId: number,
-    updates: Partial<Task>,
+    updates: ITaskUpdate,
   ): Promise<void> => {
     error.value = null;
     try {
-      const updateData = {
-        title: updates.title,
-        description: updates.description,
-        category: updates.category,
-        priority_level: updates.priority_level,
-        scheduled_date: updates.scheduled_date,
-        dead_line: updates.dead_line,
-        start_time: updates.start_time,
-        end_time: updates.end_time,
-        is_completed: updates.is_completed,
-        tags: updates.tags?.map((tag) => tag.id) || [],
-        subTasks:
-          updates.subTasks?.map((st) => ({
-            title: st.title,
-            is_completed: st.is_completed,
-          })) || [],
-      };
 
-      const response = await updateTaskAPI(taskId, updateData);
+      const response = await updateTaskAPI(taskId, updates);
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
@@ -310,10 +285,9 @@ export const useTaskStore = defineStore("task", () => {
     const task = tasks.value.find((t) => t.id === taskId);
     if (task) {
       try {
-        const newCompletionStatus = !task.is_completed;
-        await toggleTaskAPI(taskId, newCompletionStatus);
-        task.is_completed = newCompletionStatus;
-        task.updated_at = new Date().toISOString();
+        const response = await toggleTaskAPI(taskId, task.is_completed);
+        task.is_completed = !task.is_completed;
+        task.updated_at = response.data.updated_at
       } catch (err) {
         error.value =
           locales[currentLanguage.value].errorUpdatingTask ||
@@ -325,83 +299,72 @@ export const useTaskStore = defineStore("task", () => {
   };
 
   // SubTask Actions
-  const addSubTask = async (
-    taskId: number,
-    subTaskData: Omit<SubTask, "id">,
-  ): Promise<void> => {
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      const newSubTask: SubTask = {
-        ...subTaskData,
-        id: Date.now(),
-      };
-      task.subTasks.push(newSubTask);
-      await updateTask(taskId, { subTasks: task.subTasks });
-    }
-  };
+  // const addSubTask = async (
+  //   taskId: number,
+  //   subTaskData: Omit<ISubTask, "id">,
+  // ): Promise<void> => {
+  //   const task = tasks.value.find((t) => t.id === taskId);
+  //   if (task) {
+  //     const newSubTask: ISubTask = {
+  //       ...subTaskData,
+  //       id: Date.now(),
+  //     };
+  //     task.subTasks.push(newSubTask);
+  //     await updateTask(taskId, { subTasks: task.subTasks });
+  //   }
+  // };
 
-  const updateSubTask = async (
-    taskId: number,
-    subTaskId: number,
-    updates: Partial<SubTask>,
-  ): Promise<void> => {
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      const subTaskIndex = task.subTasks.findIndex((st) => st.id === subTaskId);
-      if (subTaskIndex !== -1) {
-        task.subTasks[subTaskIndex] = {
-          ...task.subTasks[subTaskIndex],
-          ...updates,
-        };
-        await updateTask(taskId, { subTasks: task.subTasks });
-      }
-    }
-  };
+  // const updateSubTask = async (
+  //   taskId: number,
+  //   subTaskId: number,
+  //   updates: Partial<ISubTask>,
+  // ): Promise<void> => {
+  //   const task = tasks.value.find((t) => t.id === taskId);
+  //   if (task) {
+  //     const subTaskIndex = task.subTasks.findIndex((st) => st.id === subTaskId);
+  //     if (subTaskIndex !== -1) {
+  //       task.subTasks[subTaskIndex] = {
+  //         ...task.subTasks[subTaskIndex],
+  //         ...updates,
+  //       };
+  //       await updateTask(taskId, { subTasks: task.subTasks });
+  //     }
+  //   }
+  // };
 
-  const deleteSubTask = async (
-    taskId: number,
-    subTaskId: number,
-  ): Promise<void> => {
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      task.subTasks = task.subTasks.filter((st) => st.id !== subTaskId);
-      await updateTask(taskId, { subTasks: task.subTasks });
-    }
-  };
+  // const deleteSubTask = async (
+  //   taskId: number,
+  //   subTaskId: number,
+  // ): Promise<void> => {
+  //   const task = tasks.value.find((t) => t.id === taskId);
+  //   if (task) {
+  //     task.subTasks = task.subTasks.filter((st) => st.id !== subTaskId);
+  //     await updateTask(taskId, { subTasks: task.subTasks });
+  //   }
+  // };
 
-  const toggleSubTaskComplete = async (
-    taskId: number,
-    subTaskId: number,
-  ): Promise<void> => {
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      const subTask = task.subTasks.find((st) => st.id === subTaskId);
-      if (subTask) {
-        await updateSubTask(taskId, subTaskId, {
-          is_completed: !subTask.is_completed,
-        });
-      }
-    }
-  };
+  // const toggleSubTaskComplete = async (
+  //   taskId: number,
+  //   subTaskId: number,
+  // ): Promise<void> => {
+  //   const task = tasks.value.find((t) => t.id === taskId);
+  //   if (task) {
+  //     const subTask = task.subTasks.find((st) => st.id === subTaskId);
+  //     if (subTask) {
+  //       await updateSubTask(taskId, subTaskId, {
+  //         is_completed: !subTask.is_completed,
+  //       });
+  //     }
+  //   }
+  // };
 
   // Utility Actions
   const clearError = (): void => {
     error.value = null;
   };
 
-  const searchTasks = (query: string): Task[] => {
-    const lowercaseQuery = query.toLowerCase();
-    return tasks.value.filter(
-      (task) =>
-        task.title.toLowerCase().includes(lowercaseQuery) ||
-        task.description.toLowerCase().includes(lowercaseQuery) ||
-        task.tags.some((tag) =>
-          tag.title.toLowerCase().includes(lowercaseQuery),
-        ),
-    );
-  };
 
-  const getTaskById = (taskId: number): Task | undefined => {
+  const getTaskById = (taskId: number): ITask | undefined => {
     return tasks.value.find((task) => task.id === taskId);
   };
 
@@ -433,14 +396,13 @@ export const useTaskStore = defineStore("task", () => {
     toggleTaskComplete,
 
     // SubTask Actions
-    addSubTask,
-    updateSubTask,
-    deleteSubTask,
-    toggleSubTaskComplete,
+    // addSubTask,
+    // updateSubTask,
+    // deleteSubTask,
+    // toggleSubTaskComplete,
 
     // Utility Actions
     clearError,
-    searchTasks,
     getTaskById,
   };
 });
