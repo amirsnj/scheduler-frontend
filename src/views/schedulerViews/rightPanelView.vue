@@ -347,21 +347,24 @@
 <script setup lang="ts">
 import { ref, watch, computed, nextTick } from "vue";
 import type {
-  Task,
-  TaskCreate,
-  TaskList,
-  Tag,
-  SubTask,
-  Locale,
+  ITask,
+  ITaskCreate,
+  ITaskList,
+  ITag,
+  ISubTask,
+  ILocale,
 } from "@/types/index";
+import { useNotificationStore } from "@/store/notificationStore";
+
+const notificationStore = useNotificationStore()
 
 // تعریف props
 const props = defineProps<{
   currentLanguage: string;
-  locales: Record<string, Locale>;
-  selectedTask: Task | null;
-  taskLists: TaskList[];
-  tags: Tag[];
+  locales: Record<string, ILocale>;
+  selectedTask: ITask | null;
+  taskLists: ITaskList[];
+  tags: ITag[];
   showPanel: boolean;
   isAddingTask: boolean;
   isMobile?: boolean;
@@ -371,7 +374,7 @@ const props = defineProps<{
 
 // تعریف emits
 const emit = defineEmits<{
-  (e: "save-task", taskData: TaskCreate & { isAddingTask: boolean }): void;
+  (e: "save-task", taskData: ITaskCreate & { isAddingTask: boolean }): void;
   (e: "delete-task"): void;
   (e: "close-panel"): void;
 }>();
@@ -385,8 +388,8 @@ const taskScheduledDate = ref<string>("");
 const taskDeadline = ref<string>("");
 const taskStartTime = ref<string | null>("");
 const taskEndTime = ref<string | null>("");
-const taskTags = ref<Tag[]>([]);
-const taskSubtasks = ref<SubTask[]>([]);
+const taskTags = ref<ITag[]>([]);
+const taskSubtasks = ref<ISubTask[]>([]);
 const taskCompleted = ref<boolean>(false);
 const scrollContainer = ref<HTMLElement | null>(null);
 
@@ -400,7 +403,7 @@ const availableTags = computed(() => {
 // Watch selectedTask for changes
 watch(
   () => props.selectedTask,
-  (newTask: Task | null) => {
+  (newTask: ITask | null) => {
     if (newTask) {
       taskTitle.value = newTask.title;
       taskDescription.value = newTask.description;
@@ -444,7 +447,7 @@ const resetForm = (): void => {
   taskCompleted.value = false;
 };
 
-const addTag = (tag: Tag): void => {
+const addTag = (tag: ITag): void => {
   if (!taskTags.value.some((t) => t.id === tag.id)) {
     taskTags.value.push(tag);
   }
@@ -455,8 +458,7 @@ const removeTag = (tagId: number): void => {
 };
 
 const addSubtask = async (): Promise<void> => {
-  const newSubtask: SubTask = {
-    id: Date.now() + Math.random(),
+  const newSubtask: ISubTask = {
     title: "",
     is_completed: false,
   };
@@ -481,16 +483,30 @@ const toggleSubtask = (index: number): void => {
     !taskSubtasks.value[index].is_completed;
 };
 
-// 🔥 اصلاح کامل saveTask
 const saveTask = (): void => {
   if (!taskTitle.value.trim()) return;
 
-  const taskData: TaskCreate & { isAddingTask: boolean } = {
+  if (taskDeadline.value && !taskScheduledDate.value) {
+    notificationStore.showWarning(props.locales[props.currentLanguage].youMustSelectAScheduledDateBeforeSettingADeadline)
+    return;
+  }
+
+  // ✅ Validation: end time must be after start time
+  if (taskStartTime.value && taskEndTime.value) {
+    const start = new Date(`1970-01-01T${taskStartTime.value}`);
+    const end = new Date(`1970-01-01T${taskEndTime.value}`);
+    if (end <= start) {
+      notificationStore.showWarning(props.locales[props.currentLanguage].endTimeMustBeAfterStartTime)
+      return;
+    }
+  }
+
+  const taskData: ITaskCreate & { isAddingTask: boolean } = {
     title: taskTitle.value.trim(),
-    description: taskDescription.value.trim() || undefined,
+    description: taskDescription.value.trim() || "",
     category: taskCategory.value,
     priority_level: taskPriority.value,
-    scheduled_date: taskScheduledDate.value || undefined,
+    scheduled_date: taskScheduledDate.value || null,
     dead_line: taskDeadline.value || null,
     start_time: taskStartTime.value || null,
     end_time: taskEndTime.value || null,
@@ -498,14 +514,15 @@ const saveTask = (): void => {
     tags: taskTags.value.map((tag) => tag.id),
     subTasks: taskSubtasks.value
       .filter((st) => st.title.trim() !== "")
-      .map((st) => ({
-        id: st.id, // ⭐ حفظ ID برای آپدیت بهینه
-        title: st.title.trim(),
-        is_completed: st.is_completed || false, // ⭐ حفظ وضعیت
-      })),
+      .map((st) => {
+        const base = {
+          title: st.title,
+          is_completed: st.is_completed || false,
+        };
+        return typeof st.id === "number" ? { ...base, id: st.id } : base;
+      }),
     isAddingTask: props.isAddingTask,
   };
-
   emit("save-task", taskData);
 };
 </script>

@@ -1,31 +1,26 @@
 // ============= BASE INTERFACES =============
 
-export interface Tag {
+export interface ITag {
   id: number;
   title: string;
 }
 
-export interface TaskList {
+export interface ITaskList {
   id: number;
   title: string;
-  task_count?: number;
+  task_count?: number
 }
 
-export interface SubTask {
-  id: number;
+export interface ISubTask {
+  id?: number;
   title: string;
   is_completed: boolean;
 }
 
-export interface SubTaskCreate {
-  id?: number;
-  title: string;
-  is_completed?: boolean;
-}
 
 // ============= TASK INTERFACES =============
 
-export interface Task {
+export interface ITask {
   id: number;
   title: string;
   description: string;
@@ -36,42 +31,43 @@ export interface Task {
   start_time?: string | null;
   end_time?: string | null;
   is_completed: boolean;
-  subTasks: SubTask[];
-  tags: Tag[];
   updated_at: string;
+  created_at: string;
+  subTasks: ISubTask[];
+  tags: ITag[];
 }
 
-export interface TaskCreate {
+export interface ITaskCreate {
   title: string;
   description?: string;
   category?: number | null;
   priority_level?: "L" | "M" | "H";
-  scheduled_date?: string;
+  scheduled_date?: string | null;
   dead_line?: string | null;
   start_time?: string | null;
   end_time?: string | null;
-  is_completed?: boolean;
+  is_completed?: boolean | false;
   tags: number[];
-  subTasks: SubTaskCreate[];
+  subTasks: ISubTask[];
 }
 
-export interface TaskUpdate {
-  title?: string;
+export interface ITaskUpdate {
+  title: string;
   description?: string;
   category?: number | null;
   priority_level?: "L" | "M" | "H";
-  scheduled_date?: string;
+  scheduled_date?: string | null;
   dead_line?: string | null;
   start_time?: string | null;
   end_time?: string | null;
-  is_completed?: boolean;
-  tags?: number[];
-  subTasks?: SubTaskCreate[];
+  is_completed?: boolean | false;
+  tags: number[];
+  subTasks: ISubTask[];
 }
 
 // ============= UTILITY INTERFACES =============
 
-export interface Locale {
+export interface ILocale {
   [key: string]: string;
 }
 

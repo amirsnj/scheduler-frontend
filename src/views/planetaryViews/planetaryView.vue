@@ -267,7 +267,7 @@ const fetchPlanetaryHours = async (): Promise<void> => {
   error.value = "";
   try {
     const res = await fetch(
-      `${BASE_URL}/api/planetary/hours/?lat=36.2972&lon=59.6067&city=Mashhad&date=${selectedDate.value}`,
+      `${BASE_URL}/api/planetary/?lat=36.2972&lon=59.6067&city=Mashhad&date=${selectedDate.value}`,
     );
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
     hoursData.value = await res.json();

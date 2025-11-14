@@ -115,6 +115,8 @@ export const locales = {
     planetary: "Planetary Hours",
     updating: "Updating...",
     deleting: "Deleting...",
+    youMustSelectAScheduledDateBeforeSettingADeadline: "You must select a scheduled date before setting a deadline.",
+    endTimeMustBeAfterStartTime: "End time must be after start time."
   },
   fa: {
     menu: "منو",
@@ -231,5 +233,7 @@ export const locales = {
     planetary: "ساعت سیارات",
     updating: "بروزرسانی...",
     deleting: "حذف...",
+    youMustSelectAScheduledDateBeforeSettingADeadline: "قبل از تعیین مهلت، باید تاریخ شروع را انتخاب کنید.",
+    endTimeMustBeAfterStartTime: "ساعت پایان باید بعد از ساعت شروع باشد."
   },
 };

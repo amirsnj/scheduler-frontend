@@ -138,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Locale, IUserInfo } from "@/types";
+import type { ILocale, IUserInfo } from "@/types";
 import { onMounted, reactive, computed } from "vue";
 import FormInput from "@/components/scheduler/rightPanelComponents/FormInput.vue";
 import {
@@ -166,7 +166,7 @@ const passwordForm = reactive({
 
 defineProps<{
   currentLanguage: string;
-  locales: Record<string, Locale>;
+  locales: Record<string, ILocale>;
 }>();
 
 const emit = defineEmits<{

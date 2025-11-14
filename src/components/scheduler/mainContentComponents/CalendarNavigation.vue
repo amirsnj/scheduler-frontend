@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { toRefs } from 'vue';
 // Props
 const props = defineProps<{
   selectedDate: string;
@@ -40,7 +41,7 @@ const props = defineProps<{
   nextDayText: string;
 }>();
 
-const { selectedDate, isRtl, previousDayText, todayText, nextDayText } = props;
+const { selectedDate, isRtl, previousDayText, todayText, nextDayText } = toRefs(props);
 
 // Emits
 const emit = defineEmits<{

@@ -66,11 +66,11 @@
 </template>
 
 <script setup lang="ts">
-import type { SubTask } from "@/types/index";
+import type { ISubTask } from "@/types/index";
 
 // Props
 const props = defineProps<{
-  subtasks: SubTask[];
+  subtasks: ISubTask[];
   label: string;
   addButtonText: string;
   placeholder: string;

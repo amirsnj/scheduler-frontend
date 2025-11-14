@@ -144,13 +144,19 @@ import SideBarView from "@/views/schedulerViews/sideBarView.vue";
 import RightPanel from "@/views/schedulerViews/rightPanelView.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
-import type { Task, TaskCreate, TaskList, Tag, SubTask } from "@/types/index";
+import type {
+  ITask,
+  ITaskCreate,
+  ITaskList,
+  ITag,
+} from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/taskStore";
 import { useTaskListStore } from "@/store/taskListStore";
 import { useTagStore } from "@/store/tagStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
 
 // Pinia stores
 const taskStore = useTaskStore();
@@ -167,7 +173,7 @@ const routeDate = computed(() => route.query.date as string | undefined);
 
 // Reactive data
 const activeItem = ref<string>("all");
-const selectedTask = ref<Task | null>(null);
+const selectedTask = ref<ITask | null>(null);
 const isMobileMenuOpen = ref<boolean>(false);
 const showMobilePanel = ref<boolean>(false);
 const showAddTaskPanel = ref<boolean>(false);
@@ -240,7 +246,7 @@ watch(routeList, (newVal) => {
 
 watch(
   routeDate,
-  (newDate) => {
+  (newDate: any) => {
     if (newDate && routeFilter.value === "calendar") {
       currentDate.value = newDate;
     }
@@ -329,7 +335,7 @@ const handleTagSelected = (tagId: number): void => {
   // You can implement tag-based filtering here
 };
 
-const handleTaskSelected = (task: Task): void => {
+const handleTaskSelected = (task: ITask): void => {
   selectedTask.value = task;
   showAddTaskPanel.value = false;
   if (window.innerWidth < 1024) {
@@ -363,7 +369,7 @@ const handleToggleTaskCompletion = async (
 };
 
 const handleSaveTask = async (
-  taskData: TaskCreate & { isAddingTask: boolean },
+  taskData: ITaskCreate & { isAddingTask: boolean },
 ): Promise<void> => {
   try {
     isSaving.value = true;
@@ -373,7 +379,6 @@ const handleSaveTask = async (
       notificationStore.showSuccess(locales[currentLanguage.value].taskCreated);
     } else if (selectedTask.value) {
       await taskStore.updateTask(selectedTask.value.id, {
-        id: selectedTask.value.id,
         title: taskData.title,
         description: taskData.description,
         category: taskData.category,
@@ -383,13 +388,20 @@ const handleSaveTask = async (
         end_time: taskData.end_time,
         dead_line: taskData.dead_line,
         is_completed: taskData.is_completed || false,
-        subTasks: taskData.subTasks.filter(
-          (subTask) => subTask.id !== undefined,
-        ) as SubTask[],
-        tags: taskData.tags
-          .map((tagId) => tagStore.tags.find((t) => t.id === tagId))
-          .filter((tag): tag is Tag => !!tag),
-        updated_at: new Date().toISOString(),
+        subTasks: taskData.subTasks.map((subTask) => {
+          if (subTask.id !== undefined) {
+            return {
+              id: subTask.id,
+              title: subTask.title,
+              is_completed: subTask.is_completed,
+            };
+          }
+          return {
+            title: subTask.title,
+            is_completed: subTask.is_completed,
+          };
+        }),
+        tags: taskData.tags,
       });
       selectedTask.value = null;
       notificationStore.showSuccess(locales[currentLanguage.value].taskUpdated);
@@ -397,16 +409,21 @@ const handleSaveTask = async (
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
     }
-  } catch (error) {
-    console.error("Error saving task:", error);
+} catch (error) {
+  console.error("Error saving task:", error);
+
+  if (axios.isAxiosError(error)) {
     notificationStore.showError(
       taskData.isAddingTask
-        ? locales[currentLanguage.value].errorCreatingTask ||
-            "Error creating task"
-        : locales[currentLanguage.value].errorUpdatingTask ||
-            "Error updating task",
+        ? error.response?.data?.detail ||
+            locales[currentLanguage.value].errorCreatingTask
+        : error.response?.data?.detail ||
+            locales[currentLanguage.value].errorUpdatingTask,
     );
-  } finally {
+  } else {
+    notificationStore.showError(locales[currentLanguage.value].errorUpdatingTask);
+  }
+} finally {
     isSaving.value = false;
   }
 };
@@ -432,7 +449,7 @@ const handleDeleteTask = async (): Promise<void> => {
 };
 
 // New methods for list and tag management
-const handleAddNewList = async (list: TaskList): Promise<void> => {
+const handleAddNewList = async (list: ITaskList): Promise<void> => {
   try {
     await taskListStore.addTaskList({ title: list.title });
     notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
@@ -444,7 +461,7 @@ const handleAddNewList = async (list: TaskList): Promise<void> => {
   }
 };
 
-const handleAddNewTag = async (tag: Tag): Promise<void> => {
+const handleAddNewTag = async (tag: Omit<ITag, "id">): Promise<void> => {
   try {
     await tagStore.addTag({ title: tag.title });
     notificationStore.showSuccess(locales[currentLanguage.value].tagCreated);

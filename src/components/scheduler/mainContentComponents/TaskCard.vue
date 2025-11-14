@@ -234,11 +234,11 @@
 </template>
 
 <script setup lang="ts">
-import type { Task } from "@/types/index";
+import type { ITask } from "@/types/index";
 
 // Props
 const props = defineProps<{
-  task: Task;
+  task: ITask;
   isSelected: boolean;
   currentLanguage: string;
   subtasksText: string;
@@ -247,7 +247,7 @@ const props = defineProps<{
 
 // Emits
 defineEmits<{
-  "task-selected": [task: Task];
+  "task-selected": [task: ITask];
   "toggle-completion": [taskId: string | number];
 }>();
 
@@ -308,11 +308,11 @@ const isOverdue = (deadlineString: string): boolean => {
   return deadline < today;
 };
 
-const getCompletedSubtasksCount = (task: Task): number => {
+const getCompletedSubtasksCount = (task: ITask): number => {
   return task.subTasks.filter((subtask) => subtask.is_completed).length;
 };
 
-const getSubtaskProgress = (task: Task): number => {
+const getSubtaskProgress = (task: ITask): number => {
   if (task.subTasks.length === 0) return 0;
   const completedCount = getCompletedSubtasksCount(task);
   return Math.round((completedCount / task.subTasks.length) * 100);

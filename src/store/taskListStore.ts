@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import type { TaskList } from "@/types";
+import type { ITaskList } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
 import {
@@ -14,7 +14,7 @@ import { useTaskStore } from "./taskStore";
 
 export const useTaskListStore = defineStore("taskList", () => {
   // State
-  const taskLists = ref<TaskList[]>([]);
+  const taskLists = ref<ITaskList[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
 
@@ -41,7 +41,7 @@ export const useTaskListStore = defineStore("taskList", () => {
   };
 
   const addTaskList = async (
-    listData: Omit<TaskList, "id" | "task_count">,
+    listData: Omit<ITaskList, "id" | "task_count">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
@@ -66,7 +66,7 @@ export const useTaskListStore = defineStore("taskList", () => {
 
   const updateTaskList = async (
     listId: number,
-    updates: Omit<TaskList, "id">,
+    updates: Omit<ITaskList, "id" | "task_count">,
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
