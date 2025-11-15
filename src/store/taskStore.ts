@@ -13,10 +13,32 @@ import {
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
 
-const isToday = (task: ITask): boolean => {
-  const today = new Date().toISOString().split("T")[0];
-  
-  return (task.scheduled_date <= today) && ((task.dead_line || today) >= today)
+function isToday(task: {
+  scheduled_date: string;
+  dead_line?: string | null;
+}): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // normalize to midnight
+
+  const scheduled = new Date(task.scheduled_date);
+  scheduled.setHours(0, 0, 0, 0);
+
+  // Rule 1: scheduled_date is today
+  if (scheduled.getTime() === today.getTime()) {
+    return true;
+  }
+
+  // Rule 2: scheduled_date is in the past, but dead_line is today or future
+  if (task.dead_line) {
+    const deadline = new Date(task.dead_line);
+    deadline.setHours(0, 0, 0, 0);
+
+    if (scheduled < today && deadline >= today) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 export const useTaskStore = defineStore("task", () => {
@@ -26,33 +48,24 @@ export const useTaskStore = defineStore("task", () => {
   const error = ref<string | null>(null);
   const tasksByDate = ref<Map<string, ITask[]>>(new Map());
 
-
   // Getters (Computed)
   const completedTasks = computed(() => {
-    return tasks.value.filter(
-      (task) =>
-        task.is_completed && isToday(task)
-    );
+    return tasks.value.filter((task) => task.is_completed && isToday(task));
   });
 
   const pendingTasks = computed(() => {
-    return tasks.value.filter(
-      (task) =>
-        !task.is_completed && isToday(task)
-    );
+    return tasks.value.filter((task) => !task.is_completed && isToday(task));
   });
 
   const tasksByCategory = computed(() => (categoryId: number | null) => {
     return tasks.value.filter(
-      (task) =>
-        task.category === categoryId && isToday(task)
+      (task) => task.category === categoryId && isToday(task),
     );
   });
 
   const tasksByPriority = computed(() => (priority: "L" | "M" | "H") => {
     return tasks.value.filter(
-      (task) =>
-        task.priority_level === priority && isToday(task)
+      (task) => task.priority_level === priority && isToday(task),
     );
   });
 
@@ -68,18 +81,12 @@ export const useTaskStore = defineStore("task", () => {
   const overdueTasks = computed(() => {
     const now = new Date().toISOString().split("T")[0];
     return tasks.value.filter(
-      (task) =>
-        task.dead_line &&
-        task.dead_line < now &&
-        !task.is_completed
+      (task) => task.dead_line && task.dead_line < now && !task.is_completed,
     );
   });
 
   const todayTasks = computed(() => {
-    return tasks.value.filter(
-      (task) =>
-        isToday(task)
-    );
+    return tasks.value.filter((task) => isToday(task));
   });
 
   const upcomingTasks = computed(() => {
@@ -147,7 +154,7 @@ export const useTaskStore = defineStore("task", () => {
     error.value = null;
     try {
       const response = await getTasksByDate(date);
-      const fetchedTasks = response.data || []
+      const fetchedTasks = response.data || [];
       tasksByDate.value.set(date, fetchedTasks);
       tasks.value = [
         ...tasks.value.filter(
@@ -199,7 +206,6 @@ export const useTaskStore = defineStore("task", () => {
   ): Promise<void> => {
     error.value = null;
     try {
-
       const response = await updateTaskAPI(taskId, updates);
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
@@ -287,7 +293,7 @@ export const useTaskStore = defineStore("task", () => {
       try {
         const response = await toggleTaskAPI(taskId, task.is_completed);
         task.is_completed = !task.is_completed;
-        task.updated_at = response.data.updated_at
+        task.updated_at = response.data.updated_at;
       } catch (err) {
         error.value =
           locales[currentLanguage.value].errorUpdatingTask ||
@@ -362,7 +368,6 @@ export const useTaskStore = defineStore("task", () => {
   const clearError = (): void => {
     error.value = null;
   };
-
 
   const getTaskById = (taskId: number): ITask | undefined => {
     return tasks.value.find((task) => task.id === taskId);

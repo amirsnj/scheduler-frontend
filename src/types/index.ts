@@ -8,7 +8,7 @@ export interface ITag {
 export interface ITaskList {
   id: number;
   title: string;
-  task_count?: number
+  task_count?: number;
 }
 
 export interface ISubTask {
@@ -16,7 +16,6 @@ export interface ISubTask {
   title: string;
   is_completed: boolean;
 }
-
 
 // ============= TASK INTERFACES =============
 

@@ -144,12 +144,7 @@ import SideBarView from "@/views/schedulerViews/sideBarView.vue";
 import RightPanel from "@/views/schedulerViews/rightPanelView.vue";
 import ConfirmDeleteModal from "@/components/scheduler/ConfirmDeleteModal.vue";
 import { locales } from "@/locales/schedulerLocales/index";
-import type {
-  ITask,
-  ITaskCreate,
-  ITaskList,
-  ITag,
-} from "@/types/index";
+import type { ITask, ITaskCreate, ITaskList, ITag } from "@/types/index";
 import { currentLanguage } from "@/main";
 import { useTaskStore } from "@/store/taskStore";
 import { useTaskListStore } from "@/store/taskListStore";
@@ -409,21 +404,23 @@ const handleSaveTask = async (
     if (window.innerWidth < 1024) {
       showMobilePanel.value = false;
     }
-} catch (error) {
-  console.error("Error saving task:", error);
+  } catch (error) {
+    console.error("Error saving task:", error);
 
-  if (axios.isAxiosError(error)) {
-    notificationStore.showError(
-      taskData.isAddingTask
-        ? error.response?.data?.detail ||
-            locales[currentLanguage.value].errorCreatingTask
-        : error.response?.data?.detail ||
-            locales[currentLanguage.value].errorUpdatingTask,
-    );
-  } else {
-    notificationStore.showError(locales[currentLanguage.value].errorUpdatingTask);
-  }
-} finally {
+    if (axios.isAxiosError(error)) {
+      notificationStore.showError(
+        taskData.isAddingTask
+          ? error.response?.data?.detail ||
+              locales[currentLanguage.value].errorCreatingTask
+          : error.response?.data?.detail ||
+              locales[currentLanguage.value].errorUpdatingTask,
+      );
+    } else {
+      notificationStore.showError(
+        locales[currentLanguage.value].errorUpdatingTask,
+      );
+    }
+  } finally {
     isSaving.value = false;
   }
 };
@@ -648,6 +645,39 @@ const handleDateSelected = async (date: string): Promise<void> => {
   });
 };
 
+//Sortin filter functions
+const priorityWeight: Record<ITask["priority_level"], number> = {
+  H: 3,
+  M: 2,
+  L: 1,
+};
+
+const sortTasks = (task: ITask[]): ITask[] => {
+  return [...task].sort((a, b) => {
+    const aHasStart = Boolean(a.start_time);
+    const bHasStart = Boolean(b.start_time);
+
+    if (a.is_completed !== b.is_completed) {
+      return a.is_completed ? 1 : -1;
+    }
+
+    if (aHasStart && !bHasStart) return -1;
+    if (!aHasStart && bHasStart) return 1;
+
+    if (aHasStart && bHasStart) {
+      const aTime = new Date(`${a.scheduled_date}T${a.start_time}`).getTime();
+      const bTime = new Date(`${b.scheduled_date}T${b.start_time}`).getTime();
+      if (aTime !== bTime) return aTime - bTime;
+    }
+
+    const aPriority = priorityWeight[a.priority_level];
+    const bPriority = priorityWeight[b.priority_level];
+    if (aPriority !== bPriority) return bPriority - aPriority;
+
+    return a.id - b.id;
+  });
+};
+
 // Dynamic props and events based on route component
 const getComponentProps = (routeName: string | symbol | null | undefined) => {
   const name = typeof routeName === "string" ? routeName : "";
@@ -658,7 +688,7 @@ const getComponentProps = (routeName: string | symbol | null | undefined) => {
         currentLanguage: currentLanguage.value,
         locales,
         activeItem: activeItem.value,
-        tasks: filteredTasks.value,
+        tasks: sortTasks(filteredTasks.value),
         selectedTask: selectedTask.value,
         isLoading: taskStore.loading,
         currentDate: currentDate.value,
