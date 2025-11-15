@@ -48,7 +48,7 @@
     </header>
 
     <!-- Current Hour Display -->
-    <div class="flex justify-center mt-10 sm:mt-20">
+    <div class="flex justify-center mt-16 sm:mt-20">
       <div v-if="loading" class="text-white text-lg sm:text-xl">Loading...</div>
       <div v-else-if="error" class="text-red-500 text-lg sm:text-xl">
         {{ error }}
@@ -122,7 +122,7 @@
     </div>
 
     <!-- Controls -->
-    <div class="flex flex-col sm:flex-row gap-2 mx-4 sm:mx-10 mt-6 sm:mt-8">
+    <div class="flex flex-col sm:flex-row gap-2 mx-4 sm:mx-10 mt-14 sm:mt-12">
       <DatePickerComponent v-model="selectedDate" />
       <SelectComponent v-model="selectedOption" :options="timeOptions" />
       <ButtonComponent size="md" @click="handleOk">OK</ButtonComponent>
