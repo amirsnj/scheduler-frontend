@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group relative rounded-xl border border-gray-200 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-gray-300 overflow-hidden"
+    class="group relative rounded-xl border border-gray-200 cursor-pointer transition-all duration-300 hover:shadow-lg shadow-md hover:border-gray-300 overflow-hidden"
     :class="[
       {
         'bg-blue-50': isSelected,
@@ -169,7 +169,7 @@
                 isOverdue(task.dead_line) ? 'text-red-600' : 'text-gray-600'
               "
             >
-              → {{ formatDate(task.dead_line) }}
+              {{ arrow }} {{ formatDate(task.dead_line) }}
             </span>
             <span
               v-if="task.dead_line && isOverdue(task.dead_line)"
@@ -198,7 +198,7 @@
               formatTime(task.start_time)
             }}</span>
             <span v-if="task.end_time" class="font-medium mt-1">
-              → {{ formatTime(task.end_time) }}
+              {{ arrow }} {{ formatTime(task.end_time) }}
             </span>
           </div>
         </div>
@@ -250,6 +250,8 @@ defineEmits<{
   "task-selected": [task: ITask];
   "toggle-completion": [taskId: string | number];
 }>();
+
+import { computed } from "vue";
 
 // Helper Functions
 const getPriorityColor = (level: "L" | "M" | "H"): string => {
@@ -317,6 +319,11 @@ const getSubtaskProgress = (task: ITask): number => {
   const completedCount = getCompletedSubtasksCount(task);
   return Math.round((completedCount / task.subTasks.length) * 100);
 };
+
+// RTL-aware arrow helper
+const rtlLanguages = ["fa", "ar", "he", "ur"];
+const isRtl = computed(() => rtlLanguages.includes(props.currentLanguage));
+const arrow = computed(() => (isRtl.value ? "←" : "→"));
 </script>
 
 <style scoped>
