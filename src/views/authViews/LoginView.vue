@@ -349,6 +349,7 @@ import { locales } from "@/locales/authLocales/index";
 import { currentLanguage } from "@/main";
 import { login } from "@/api/authService";
 import { useNotificationStore } from "@/store/notificationStore";
+import { getAccess } from "@/api/generated/endpoints";
 
 // Props
 // interface Props {
@@ -407,7 +408,13 @@ const handleSubmit = async (): Promise<void> => {
   isLoading.value = true;
 
   try {
-    const response = await login({
+    // const response = await login({
+    //   username: formData.username,
+    //   password: formData.password,
+    // });
+
+    debugger;
+    const response = await getAccess().accessControllerLogin({
       username: formData.username,
       password: formData.password,
     });
@@ -417,8 +424,8 @@ const handleSubmit = async (): Promise<void> => {
         locales[currentLanguage.value].loginSuccess,
       );
 
-      const token = response.data?.access;
-      const refresh_token = response.data?.refresh;
+      const token = response.result?.token;
+      const refresh_token = response.result?.refresh;
 
       if (token && refresh_token) {
         localStorage.setItem("token", token);
@@ -441,6 +448,10 @@ const handleSubmit = async (): Promise<void> => {
       if (error.response.status === 401) {
         notificationStore.showError(
           locales[currentLanguage.value].invalidCredentials,
+        );
+      } else if (error.response.status >= 404) {
+        notificationStore.showError(
+          locales[currentLanguage.value].userNotFound,
         );
       } else if (error.response.status >= 500) {
         notificationStore.showError(locales[currentLanguage.value].serverError);

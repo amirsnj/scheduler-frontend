@@ -23,8 +23,8 @@ export const locales = {
     signInLink: "Sign in here",
     firstName: "First Name",
     lastName: "Last Name",
-    google: 'Google',
-    github: 'GitHub',
+    google: "Google",
+    github: "GitHub",
 
     // Common
     loading: "Loading...",
@@ -46,10 +46,12 @@ export const locales = {
     loginSuccess: "Login successful!",
     invalidCredentials: "Invalid username or password",
     serverError: "Server communication error",
+    userNotFound: "User not found",
     networkError: "Network error. Please check your connection.",
     unexpectedError: "An unexpected error occurred. Please try again late.",
     usedUsername: "A user with that username already exists",
     RedirectingtoLoginPage: "Redirecting to Login Page",
+    takenEmailOrUsername: "Username or email has alread taken",
   },
   fa: {
     // Login Page
@@ -95,12 +97,14 @@ export const locales = {
     registerSuccess: "ثبت‌نام با موفقیت انجام شد!",
     loginSuccess: "ورود با موفقیت انجام شد!",
     invalidCredentials: "نام کاربری یا رمز عبور نادرست است",
+    takenEmailOrUsername: "نام کاربری یا ایمیل تکراری می باشد",
+    userNotFound: "کاربر یافت نشد",
     serverError: "خطا در برقراری ارتباط با سرور",
     networkError: "خطای شبکه. لطفا اتصال اینترنت خود را بررسی کنید.",
     unexpectedError: "خطای غیرمنتظره‌ای رخ داد لطفا بعدا امتحان کنید.",
     usedUsername: "نام کاربری استفاده شده است",
     RedirectingtoLoginPage: "درحال انتقال به صفحه ورود",
     google: "گوگل",
-    github: "گیت هاب"
+    github: "گیت هاب",
   },
 };

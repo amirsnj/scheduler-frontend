@@ -67,16 +67,16 @@
 
         <div class="flex gap-4 lg:flex-row flex-col">
           <FormInput
-            :model-value="userInfoForm.first_name || ''"
-            @update:model-value="(value) => (userInfoForm.first_name = value)"
+            :model-value="userInfoForm.firstName || ''"
+            @update:model-value="(value) => (userInfoForm.firstName = value)"
             :label="locales[currentLanguage].firstName"
             type="text"
             :placeholder="locales[currentLanguage].enterFirstName"
             :required="true"
           />
           <FormInput
-            :model-value="userInfoForm.last_name || ''"
-            @update:model-value="(value) => (userInfoForm.last_name = value)"
+            :model-value="userInfoForm.lastName || ''"
+            @update:model-value="(value) => (userInfoForm.lastName = value)"
             :label="locales[currentLanguage].lastName"
             type="text"
             :placeholder="locales[currentLanguage].enterLastName"
@@ -149,13 +149,14 @@ import {
 import { useNotificationStore } from "@/store/notificationStore";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
+import { getUserService } from "@/api/generated/endpoints";
 
 const userInfoForm = reactive<IUserInfo>({
   id: -1,
   username: "",
   email: "",
-  first_name: "",
-  last_name: "",
+  firstName: "",
+  lastName: "",
 });
 
 const passwordForm = reactive({
@@ -183,7 +184,7 @@ const handleLanguageChange = (): void => {
 
 const handleEditProfile = async (): Promise<void> => {
   // Validate required fields
-  if (!userInfoForm.first_name?.trim() && !userInfoForm.last_name?.trim()) {
+  if (!userInfoForm.firstName?.trim() && !userInfoForm.lastName?.trim()) {
     notificationStore.showError(
       locales[currentLang.value].firstNameRequired +
         " " +
@@ -192,23 +193,24 @@ const handleEditProfile = async (): Promise<void> => {
     return;
   }
 
-  if (!userInfoForm.first_name?.trim()) {
+  if (!userInfoForm.firstName?.trim()) {
     notificationStore.showError(locales[currentLang.value].firstNameRequired);
     return;
   }
 
-  if (!userInfoForm.last_name?.trim()) {
+  if (!userInfoForm.lastName?.trim()) {
     notificationStore.showError(locales[currentLang.value].lastNameRequired);
     return;
   }
 
   try {
-    const res = await editUserInfo(userInfoForm);
+    const res =
+      await getUserService().userControllerUpdateProfile(userInfoForm);
 
     // Update local state with response data
-    if (res.data) {
-      userInfoForm.first_name = res.data.first_name;
-      userInfoForm.last_name = res.data.last_name;
+    if (res.result) {
+      userInfoForm.firstName = res.result.firstName;
+      userInfoForm.lastName = res.result.lastName;
     }
 
     // Show success notification
@@ -298,9 +300,16 @@ const handleChangePassword = async (): Promise<void> => {
   }
 
   try {
-    await changePassword({
-      new_password: passwordForm.newPassword,
-      current_password: passwordForm.currentPassword,
+    // await changePassword({
+    //   new_password: passwordForm.newPassword,
+    //   current_password: passwordForm.currentPassword,
+    // });
+    //
+
+    debugger;
+    await getUserService().userControllerSetPassword({
+      newPassword: passwordForm.newPassword,
+      oldPassword: passwordForm.currentPassword,
     });
 
     // Clear form
@@ -346,7 +355,7 @@ const handleChangePassword = async (): Promise<void> => {
             locales[currentLang.value].errorChangingPassword,
           );
         }
-      } else if (status === 401) {
+      } else if (status === 403) {
         // Unauthorized
         notificationStore.showError(
           "Current password is incorrect. Please try again.",
@@ -378,12 +387,13 @@ const handleChangePassword = async (): Promise<void> => {
 
 onMounted(async () => {
   try {
-    const res = await getCurrentUserData();
-    userInfoForm.id = res.data.id;
-    userInfoForm.username = res.data.username;
-    userInfoForm.email = res.data.email;
-    userInfoForm.first_name = res.data.first_name;
-    userInfoForm.last_name = res.data.last_name;
+    const res = await getUserService().userControllerGetInfo();
+    const profile = res.result!;
+    userInfoForm.id = profile.id;
+    userInfoForm.username = profile.username;
+    userInfoForm.email = profile.email;
+    userInfoForm.firstName = profile.firstName;
+    userInfoForm.lastName = profile.lastName;
   } catch (error) {
     console.error("Error fetching user data:", error);
     notificationStore.showError(

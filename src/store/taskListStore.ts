@@ -3,20 +3,18 @@ import { ref, computed } from "vue";
 import type { ITaskList } from "@/types";
 import { locales } from "@/locales/schedulerLocales/index";
 import { currentLanguage } from "@/main";
-import {
-  createTaskCategory,
-  getTaskCategories,
-  updateTaskCategory,
-  deleteTaskCategory,
-} from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
 import { useTaskStore } from "./taskStore";
+import to from "await-to-js";
+import { getCategory } from "@/api/generated/endpoints";
 
 export const useTaskListStore = defineStore("taskList", () => {
   // State
   const taskLists = ref<ITaskList[]>([]);
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
+
+  const categoryService = getCategory();
 
   // Getters
   const getTaskListById = computed(() => (listId: number) => {
@@ -27,17 +25,26 @@ export const useTaskListStore = defineStore("taskList", () => {
   const fetchTaskLists = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
-    try {
-      const response = await getTaskCategories();
-      taskLists.value = response.data;
-    } catch (err) {
+
+    const [err, resp] = await to(
+      categoryService.categoryControllerGetAll({ offset: 0, limit: 1000 }),
+    );
+
+    if (err) {
       error.value =
         locales[currentLanguage.value].errorFetchingLists ||
         "Error fetching task lists";
       console.error("Error fetching task lists:", err);
-    } finally {
-      loading.value = false;
     }
+
+    taskLists.value = resp!.results!.map((data) => {
+      return {
+        id: data.id,
+        title: data.title,
+      };
+    });
+
+    loading.value = false;
   };
 
   const addTaskList = async (
@@ -45,12 +52,23 @@ export const useTaskListStore = defineStore("taskList", () => {
   ): Promise<void> => {
     loading.value = true;
     error.value = null;
+    const notificationStore = useNotificationStore();
     try {
-      const response = await createTaskCategory(listData);
-      taskLists.value.push(response.data);
-    } catch (err) {
-      const notificationStore = useNotificationStore();
-      if ((err as any).status == 400) {
+      const response = await categoryService.categoryControllerCreate(listData);
+      taskLists.value.push(response.result!);
+
+      notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
+    } catch (err: any) {
+      const error = err?.response?.data;
+
+      debugger;
+      if (error.status == 400) {
+        const message = Array.isArray(error.message)
+          ? (error as any)?.message?.[0]
+          : (error as any).message;
+
+        notificationStore.showError(message ?? "Validation Error");
+      } else if ((err as any).status == 409) {
         notificationStore.showError(
           locales[currentLanguage.value].TheListIsAlreadyExists,
         );
@@ -71,12 +89,18 @@ export const useTaskListStore = defineStore("taskList", () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await updateTaskCategory(listId, updates);
+      const response = await categoryService.categoryControllerUpdateOne(
+        listId,
+        updates,
+      );
 
       const listIndex = taskLists.value.findIndex((list) => list.id === listId);
       if (listIndex === -1) throw new Error("List not found");
+      const target = taskLists.value[listIndex];
+
       taskLists.value[listIndex] = {
-        ...response.data,
+        ...target,
+        title: response!.result!.title,
       };
     } catch (err) {
       error.value =
@@ -92,7 +116,7 @@ export const useTaskListStore = defineStore("taskList", () => {
     loading.value = true;
     error.value = null;
     try {
-      await deleteTaskCategory(listId);
+      await categoryService.categoryControllerDelete(listId);
 
       taskLists.value = taskLists.value.filter((list) => list.id !== listId);
 

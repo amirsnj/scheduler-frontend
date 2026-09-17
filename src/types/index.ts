@@ -24,7 +24,7 @@ export interface ITask {
   title: string;
   description: string;
   category?: number | null;
-  priority_level: "L" | "M" | "H";
+  priority_level: "high" | "medium" | "low";
   scheduled_date: string;
   dead_line?: string | null;
   start_time?: string | null;
@@ -40,7 +40,7 @@ export interface ITaskCreate {
   title: string;
   description?: string;
   category?: number | null;
-  priority_level?: "L" | "M" | "H";
+  priority_level?: "low" | "medium" | "high";
   scheduled_date?: string | null;
   dead_line?: string | null;
   start_time?: string | null;
@@ -54,7 +54,7 @@ export interface ITaskUpdate {
   title: string;
   description?: string;
   category?: number | null;
-  priority_level?: "L" | "M" | "H";
+  priority_level?: "low" | "medium" | "high";
   scheduled_date?: string | null;
   dead_line?: string | null;
   start_time?: string | null;
@@ -86,9 +86,9 @@ export interface PaginatedResponse<T> {
 // ============= CONSTANTS =============
 
 export const PriorityLevel = {
-  LOW: "L",
-  MEDIUM: "M",
-  HIGH: "H",
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
 } as const;
 
 export const TaskStatus = {
@@ -107,6 +107,6 @@ export interface IUserInfo {
   id: number;
   username: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
+  firstName?: string;
+  lastName?: string;
 }

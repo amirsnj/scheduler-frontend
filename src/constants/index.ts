@@ -52,9 +52,9 @@ export const ROUTES = {
 // ============= PRIORITY CONSTANTS =============
 
 export const PRIORITY_LEVELS = {
-  LOW: "L",
-  MEDIUM: "M",
-  HIGH: "H",
+  LOW: "low",
+  MEDIUM: "medium",
+  HIGH: "high",
 } as const;
 
 export const PRIORITY_COLORS = {
@@ -90,4 +90,3 @@ export const VALIDATION_RULES = {
     MAX_LENGTH: 100,
   },
 } as const;
-

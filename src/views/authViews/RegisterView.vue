@@ -598,8 +598,8 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { locales } from "@/locales/authLocales/index";
 import { currentLanguage } from "@/main";
-import { sendRegisterData } from "@/api/authService";
 import { useNotificationStore } from "@/store/notificationStore";
+import { getUserService } from "@/api/generated/endpoints";
 
 // Router
 const router = useRouter();
@@ -687,9 +687,18 @@ const handleSubmit = async (): Promise<void> => {
 
   try {
     // API call to register
-    const response = await sendRegisterData({
-      first_name: formData.firstName,
-      last_name: formData.lastName,
+    // const response = await sendRegisterData({
+    //   first_name: formData.firstName,
+    //   last_name: formData.lastName,
+    //   username: formData.username,
+    //   email: formData.email,
+    //   password: formData.password,
+    // });
+
+    debugger;
+    const response = await getUserService().userControllerRegister({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
       username: formData.username,
       email: formData.email,
       password: formData.password,
@@ -746,6 +755,10 @@ const handleSubmit = async (): Promise<void> => {
             locales[currentLanguage.value].unexpectedError,
           );
         }
+      } else if (status === 409) {
+        notificationStore.showError(
+          locales[currentLanguage.value].takenEmailOrUsername,
+        );
       } else if (status >= 500) {
         notificationStore.showError(locales[currentLanguage.value].serverError);
       } else {

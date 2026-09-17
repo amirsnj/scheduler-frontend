@@ -12,6 +12,7 @@ import {
   getTasksByDate,
 } from "@/api/appService";
 import { useNotificationStore } from "./notificationStore";
+import { getTask } from "@/api/generated/endpoints";
 
 function isToday(task: {
   scheduled_date: string;
@@ -48,6 +49,8 @@ export const useTaskStore = defineStore("task", () => {
   const error = ref<string | null>(null);
   const tasksByDate = ref<Map<string, ITask[]>>(new Map());
 
+  const taskService = getTask();
+
   // Getters (Computed)
   const completedTasks = computed(() => {
     return tasks.value.filter((task) => task.is_completed && isToday(task));
@@ -63,11 +66,13 @@ export const useTaskStore = defineStore("task", () => {
     );
   });
 
-  const tasksByPriority = computed(() => (priority: "L" | "M" | "H") => {
-    return tasks.value.filter(
-      (task) => task.priority_level === priority && isToday(task),
-    );
-  });
+  const tasksByPriority = computed(
+    () => (priority: "medium" | "low" | "high") => {
+      return tasks.value.filter(
+        (task) => task.priority_level === priority && isToday(task),
+      );
+    },
+  );
 
   const tasksByTag = computed(() => (tagId: number) => {
     const today = new Date().toISOString().split("T")[0];
@@ -112,10 +117,34 @@ export const useTaskStore = defineStore("task", () => {
     loading.value = true;
     error.value = null;
     try {
-      const response = await getTasks();
-      tasks.value = Array.isArray(response.data)
-        ? response.data
-        : (response.data as any).task || [];
+      const response = await taskService.taskControllerGetAll({
+        limit: 1000,
+        offset: 0,
+      });
+      tasks.value =
+        response.results?.map(
+          (task): ITask => ({
+            id: task.id,
+            title: task.title,
+            description: task.description ?? "",
+            is_completed: task.isCompleted,
+            created_at: task.createdAt,
+            priority_level: task.priorityLevel,
+            scheduled_date: task.scheduledDate,
+            dead_line: task.deadLine,
+            updated_at: task.createdAt,
+            start_time: task.startTime,
+            end_time: task.endTime,
+            category: task.category?.id,
+            subTasks: task.subTasks.map((st) => ({
+              id: st.id,
+              title: st.title,
+              is_completed: st.isCompleted!,
+            })),
+            tags: task.tags,
+          }),
+        ) ?? [];
+
       const today = new Date().toISOString().split("T")[0];
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -180,16 +209,55 @@ export const useTaskStore = defineStore("task", () => {
   const addTask = async (taskData: ITaskCreate): Promise<void> => {
     error.value = null;
     try {
-      const response = await createTask(taskData);
-      tasks.value.push(response.data);
+      const response = await taskService.taskControllerCreate({
+        title: taskData.title,
+        description: taskData.description,
+        startTime: taskData.start_time ?? undefined,
+        endTime: taskData.end_time ?? undefined,
+        categoryId: taskData.category!,
+        deadLine: taskData.dead_line ?? undefined,
+        scheduledDate: taskData.scheduled_date ?? undefined,
+        isCompleted: taskData.is_completed,
+        priorityLevel: "medium",
+        subTasks: taskData.subTasks.map((st) => ({
+          title: st.title,
+          isCompleted: st.is_completed,
+        })),
+        tags: taskData.tags,
+      });
+
+      const newTask = response.result!;
+      const transformed: ITask = {
+        id: newTask.id,
+        title: newTask.title,
+        description: newTask.description ?? "",
+        is_completed: newTask.isCompleted!,
+        priority_level: newTask.priorityLevel,
+        scheduled_date: newTask.scheduledDate!,
+        end_time: newTask.endTime,
+        start_time: newTask.startTime,
+        dead_line: newTask.deadLine,
+        created_at: newTask.createdAt,
+        updated_at: newTask.createdAt,
+        subTasks: newTask.subTasks.map((sub) => ({
+          id: sub.id,
+          title: sub.title,
+          is_completed: sub.isCompleted!,
+        })),
+        tags: newTask.tags,
+        category: newTask.category?.id,
+      };
+
+      tasks.value.push(transformed);
+
       if (
         taskData.scheduled_date &&
         tasksByDate.value.has(taskData.scheduled_date)
       ) {
-        tasksByDate.value.get(taskData.scheduled_date)!.push(response.data);
+        tasksByDate.value.get(taskData.scheduled_date)!.push(transformed);
       }
       if (taskData.dead_line && tasksByDate.value.has(taskData.dead_line)) {
-        tasksByDate.value.get(taskData.dead_line)!.push(response.data);
+        tasksByDate.value.get(taskData.dead_line)!.push(transformed);
       }
     } catch (err) {
       error.value =
@@ -206,15 +274,55 @@ export const useTaskStore = defineStore("task", () => {
   ): Promise<void> => {
     error.value = null;
     try {
-      const response = await updateTaskAPI(taskId, updates);
+      const response = await taskService.taskControllerUpdate(taskId, {
+        id: taskId,
+        title: updates.title,
+        description: updates.description,
+        isCompleted: updates.is_completed,
+        deadLine: updates.dead_line,
+        categoryId: updates.category,
+        endTime: updates.end_time,
+        priorityLevel: "high",
+        scheduledDate: updates.scheduled_date ?? undefined,
+        startTime: updates.start_time,
+        subTasks: updates.subTasks.map((st) => ({
+          id: st.id,
+          isCompleted: st.is_completed,
+          title: st.title,
+        })),
+        tags: updates.tags,
+      });
+
       const taskIndex = tasks.value.findIndex((task) => task.id === taskId);
       if (taskIndex === -1) throw new Error("Task not found");
 
       const oldScheduledDate = tasks.value[taskIndex].scheduled_date;
       const oldDeadline = tasks.value[taskIndex].dead_line;
 
+      const outputRes = response.result!;
+      const task: ITask = {
+        id: outputRes.id,
+        title: outputRes.title,
+        description: outputRes.description ?? "",
+        is_completed: outputRes.isCompleted,
+        scheduled_date: outputRes.scheduledDate,
+        dead_line: outputRes.deadLine,
+        end_time: outputRes.endTime,
+        start_time: outputRes.startTime,
+        created_at: outputRes.createdAt,
+        priority_level: outputRes.priorityLevel,
+        updated_at: outputRes.createdAt,
+        category: outputRes?.category?.id,
+        subTasks: outputRes.subTasks.map((st) => ({
+          id: st.id,
+          title: st.title,
+          is_completed: st.isCompleted!,
+        })),
+        tags: outputRes.tags,
+      };
+
       tasks.value[taskIndex] = {
-        ...response.data,
+        ...task,
         updated_at: new Date().toISOString(),
       };
 
@@ -238,10 +346,48 @@ export const useTaskStore = defineStore("task", () => {
         updates.scheduled_date &&
         tasksByDate.value.has(updates.scheduled_date)
       ) {
-        tasksByDate.value.get(updates.scheduled_date)!.push(response.data);
+        tasksByDate.value.get(updates.scheduled_date)!.push({
+          id: response.result!.id,
+          title: response.result!.title,
+          description: response.result!.description,
+          is_completed: response.result!.isCompleted,
+          created_at: response.result!.createdAt,
+          priority_level: response.result!.priorityLevel,
+          scheduled_date: response.result!.scheduledDate,
+          end_time: response.result!.endTime,
+          updated_at: response.result!.createdAt,
+          category: response.result?.category?.id,
+          dead_line: response.result!.deadLine,
+          start_time: response.result!.startTime,
+          subTasks: response.result!.subTasks.map((st) => ({
+            id: st.id,
+            title: st.title,
+            is_completed: !!st?.isCompleted,
+          })),
+          tags: response.result!.tags,
+        });
       }
       if (updates.dead_line && tasksByDate.value.has(updates.dead_line)) {
-        tasksByDate.value.get(updates.dead_line)!.push(response.data);
+        tasksByDate.value.get(updates.dead_line)!.push({
+          id: response.result!.id,
+          title: response.result!.title,
+          description: response.result!.description,
+          is_completed: response.result!.isCompleted,
+          created_at: response.result!.createdAt,
+          priority_level: response.result!.priorityLevel,
+          scheduled_date: response.result!.scheduledDate,
+          end_time: response.result!.endTime,
+          updated_at: response.result!.createdAt,
+          category: response.result?.category?.id,
+          dead_line: response.result!.deadLine,
+          start_time: response.result!.startTime,
+          subTasks: response.result!.subTasks.map((st) => ({
+            id: st.id,
+            title: st.title,
+            is_completed: !!st?.isCompleted,
+          })),
+          tags: response.result!.tags,
+        });
       }
     } catch (err) {
       error.value =

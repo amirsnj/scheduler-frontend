@@ -449,7 +449,6 @@ const handleDeleteTask = async (): Promise<void> => {
 const handleAddNewList = async (list: ITaskList): Promise<void> => {
   try {
     await taskListStore.addTaskList({ title: list.title });
-    notificationStore.showSuccess(locales[currentLanguage.value].listCreated);
   } catch (error) {
     console.log("error adding new list:", error);
     notificationStore.showError(
@@ -647,9 +646,9 @@ const handleDateSelected = async (date: string): Promise<void> => {
 
 //Sortin filter functions
 const priorityWeight: Record<ITask["priority_level"], number> = {
-  H: 3,
-  M: 2,
-  L: 1,
+  high: 3,
+  medium: 2,
+  low: 1,
 };
 
 const sortTasks = (task: ITask[]): ITask[] => {

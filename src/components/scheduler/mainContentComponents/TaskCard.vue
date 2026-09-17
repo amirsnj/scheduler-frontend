@@ -254,11 +254,11 @@ defineEmits<{
 import { computed } from "vue";
 
 // Helper Functions
-const getPriorityColor = (level: "L" | "M" | "H"): string => {
+const getPriorityColor = (level: "low" | "medium" | "high"): string => {
   const colors = {
-    L: "bg-gradient-to-r from-green-400 to-emerald-500",
-    M: "bg-gradient-to-r from-yellow-400 to-orange-400",
-    H: "bg-gradient-to-r from-orange-500 to-red-500",
+    low: "bg-gradient-to-r from-green-400 to-emerald-500",
+    medium: "bg-gradient-to-r from-yellow-400 to-orange-400",
+    high: "bg-gradient-to-r from-orange-500 to-red-500",
   };
   return colors[level] || "bg-gray-400";
 };

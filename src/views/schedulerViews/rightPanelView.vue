@@ -88,13 +88,13 @@
             v-model="taskPriority"
             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="L">
+            <option value="low">
               {{ locales[currentLanguage].lowPriority }}
             </option>
-            <option value="M">
+            <option value="medium">
               {{ locales[currentLanguage].mediumPriority }}
             </option>
-            <option value="H">
+            <option value="high">
               {{ locales[currentLanguage].highPriority }}
             </option>
           </select>
@@ -356,7 +356,7 @@ import type {
 } from "@/types/index";
 import { useNotificationStore } from "@/store/notificationStore";
 
-const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore();
 
 // تعریف props
 const props = defineProps<{
@@ -383,7 +383,7 @@ const emit = defineEmits<{
 const taskTitle = ref<string>("");
 const taskDescription = ref<string>("");
 const taskCategory = ref<number | null>(null);
-const taskPriority = ref<"L" | "M" | "H">("L");
+const taskPriority = ref<"low" | "medium" | "high">("low");
 const taskScheduledDate = ref<string>("");
 const taskDeadline = ref<string>("");
 const taskStartTime = ref<string | null>("");
@@ -437,7 +437,7 @@ const resetForm = (): void => {
   taskTitle.value = "";
   taskDescription.value = "";
   taskCategory.value = null;
-  taskPriority.value = "L";
+  taskPriority.value = "low";
   taskScheduledDate.value = "";
   taskDeadline.value = "";
   taskStartTime.value = "";
@@ -487,7 +487,10 @@ const saveTask = (): void => {
   if (!taskTitle.value.trim()) return;
 
   if (taskDeadline.value && !taskScheduledDate.value) {
-    notificationStore.showWarning(props.locales[props.currentLanguage].youMustSelectAScheduledDateBeforeSettingADeadline)
+    notificationStore.showWarning(
+      props.locales[props.currentLanguage]
+        .youMustSelectAScheduledDateBeforeSettingADeadline,
+    );
     return;
   }
 
@@ -496,7 +499,9 @@ const saveTask = (): void => {
     const start = new Date(`1970-01-01T${taskStartTime.value}`);
     const end = new Date(`1970-01-01T${taskEndTime.value}`);
     if (end <= start) {
-      notificationStore.showWarning(props.locales[props.currentLanguage].endTimeMustBeAfterStartTime)
+      notificationStore.showWarning(
+        props.locales[props.currentLanguage].endTimeMustBeAfterStartTime,
+      );
       return;
     }
   }
